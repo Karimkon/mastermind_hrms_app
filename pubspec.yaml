@@ -1,0 +1,85 @@
+name: mastermind_hrms_app
+description: "Mastermind Consultants HRMS Desktop Application"
+publish_to: 'none'
+version: 1.0.3+14
+
+environment:
+  sdk: ^3.10.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.6.1
+
+  # Navigation
+  go_router: ^14.0.0
+
+  # HTTP client
+  dio: ^5.7.0
+
+  # Secure storage
+  flutter_secure_storage: ^9.2.4
+  flutter_secure_storage_windows: ^3.1.2
+
+  # Local storage
+  shared_preferences: ^2.3.0
+
+  # Fonts
+  google_fonts: ^6.2.0
+
+  # Charts
+  fl_chart: ^0.69.0
+
+  # Date / time
+  intl: ^0.19.0
+
+  # File picker
+  file_picker: ^8.1.0
+
+  # Geolocation (for geo-fence attendance)
+  geolocator: ^13.0.0
+
+  # Open files
+  open_filex: ^4.3.0
+
+  # Images
+  cached_network_image: ^3.4.0
+
+  # Loading states
+  shimmer: ^3.0.0
+
+  # Window management
+  window_manager: ^0.4.0
+
+  # SVG icons
+  flutter_svg: ^2.0.0
+
+  # Misc
+  equatable: ^2.0.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.png"
+  remove_alpha_ios: true
+  min_sdk_android: 21
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "assets/images/logo.png"
+  windows:
+    generate: true
+    image_path: "assets/images/logo.png"
+    icon_size: 48
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
