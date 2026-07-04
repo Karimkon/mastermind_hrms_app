@@ -43,6 +43,10 @@
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app uses your location to record attendance and verify clock-in/out at assigned work sites.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app uses your location in the background to support attendance tracking and work-site verification.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app uses your photo library so you can choose and upload a profile photo or supporting image.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
