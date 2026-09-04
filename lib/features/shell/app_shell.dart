@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/notifications_provider.dart';
+import '../../core/models/user_model.dart';
 
 class AppShell extends ConsumerStatefulWidget {
   final Widget child;
@@ -64,7 +65,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     );
   }
 
-  List<dynamic> _buildNavItems(user) {
+  List<dynamic> _buildNavItems(UserModel user) {
     final items = <dynamic>[];
     items.add(_NavItem(icon: Icons.dashboard_rounded, label: 'Dashboard', path: '/dashboard'));
 
@@ -76,12 +77,19 @@ class _AppShellState extends ConsumerState<AppShell> {
 
     items.add(_NavSectionHeader('MY WORK'));
     items.add(_NavItem(icon: Icons.fingerprint_rounded, label: 'Attendance', path: '/attendance'));
+    // Office presence register. Offered to office-based staff — client-site
+    // employees clock in through Attendance above, which is the payroll one.
+    if (user.isAccountManager || user.isAdmin || user.isManager || user.isPayroll) {
+      items.add(_NavItem(
+        icon: Icons.business_rounded, label: 'Office Attendance', path: '/office-attendance'));
+    }
     items.add(_NavItem(icon: Icons.beach_access_rounded, label: 'My Leave', path: '/leaves'));
     items.add(_NavItem(icon: Icons.receipt_long_rounded, label: 'My Payslips', path: '/my-payslips'));
     items.add(_NavItem(icon: Icons.folder_rounded, label: 'My Documents', path: '/my-documents'));
     items.add(_NavItem(icon: Icons.school_rounded, label: 'Training', path: '/training'));
     items.add(_NavItem(icon: Icons.balance_rounded, label: 'My Appraisal', path: '/bsc/my-appraisal'));
     items.add(_NavItem(icon: Icons.calendar_month_rounded, label: 'Meetings', path: '/meetings'));
+    items.add(_NavItem(icon: Icons.lightbulb_rounded, label: 'Company Insights', path: '/blog'));
 
     if (user.isAccountManager) {
       items.add(_NavSectionHeader('AM TOOLS'));
@@ -98,8 +106,12 @@ class _AppShellState extends ConsumerState<AppShell> {
       items.add(_NavItem(icon: Icons.people_rounded, label: 'Employees', path: '/employees'));
       items.add(_NavItem(icon: Icons.bar_chart_rounded, label: 'Performance', path: '/performance'));
       items.add(_NavItem(icon: Icons.balance_rounded, label: 'BSC Appraisals', path: '/bsc'));
-      if (user.canSeeProbation)
+      // Payroll pays only approved overtime, so this screen gates real money.
+      items.add(_NavItem(
+        icon: Icons.hourglass_bottom_rounded, label: 'Overtime Approval', path: '/overtime'));
+      if (user.canSeeProbation) {
         items.add(_NavItem(icon: Icons.person_search_rounded, label: 'Probation', path: '/probation'));
+      }
     }
 
     if (user.isAdmin || user.isPayroll) {
@@ -189,7 +201,7 @@ class _MobileShellState extends ConsumerState<_MobileShell> {
     );
   }
 
-  List<_BottomNavItem> _getBottomNavItems(user) {
+  List<_BottomNavItem> _getBottomNavItems(UserModel user) {
     if (user.isClient) {
       return [
         _BottomNavItem(icon: Icons.task_alt_rounded, label: 'Leaves', path: '/client/leaves'),

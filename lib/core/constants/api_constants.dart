@@ -86,6 +86,19 @@ class ApiConstants {
   static const String myNok = '/my/nok';
 
   // AM Site Visits
+  // Office attendance — head-office presence register, keyed on the user
+  // account so account managers (who have no employee record) can use it.
+  // Never feeds payroll.
+  static const String officeAttendance         = '/office-attendance';
+  static const String officeAttendanceToday    = '/office-attendance/today';
+  static const String officeAttendanceClockIn  = '/office-attendance/clock-in';
+  static const String officeAttendanceClockOut = '/office-attendance/clock-out';
+
+  // Overtime approval — payroll pays only what is approved here.
+  static const String overtime = '/overtime';
+  static String overtimeApprove(int id) => '/overtime/$id/approve';
+  static String overtimeReject(int id)  => '/overtime/$id/reject';
+
   static const String amVisits       = '/am-visits';
   static const String amVisitClockIn = '/am-visits/clock-in';
   static const String amVisitClockOut= '/am-visits/clock-out';
@@ -107,4 +120,9 @@ class ApiConstants {
 
   // Probation
   static const String probation = '/probation';
+
+  // Company insights (public blog feed - no auth required)
+  static const String blogArticles = '/blog/articles';
+  static const String blogTopics   = '/blog/topics';
+  static String blogArticle(String slug) => '/blog/articles/$slug';
 }
