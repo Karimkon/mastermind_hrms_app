@@ -1,7 +1,7 @@
 name: mastermind_hrms_app
-description: "Mastermind Consultants HRMS Desktop Application"
+description: "Mastermind Consult Ltd HRMS — mobile and desktop app"
 publish_to: 'none'
-version: 1.0.3+14
+version: 1.2.0+16
 
 environment:
   sdk: ^3.10.4
@@ -55,6 +55,11 @@ dependencies:
 
   # SVG icons
   flutter_svg: ^2.0.0
+
+  # Cupertino glyphs. Nothing in lib/ uses these directly, but Flutter's own
+  # Material widgets fall back to them on iOS (the back button, adaptive
+  # dialogs), and without the package those render as missing glyphs.
+  cupertino_icons: ^1.0.8
 
   # Misc
   equatable: ^2.0.5
