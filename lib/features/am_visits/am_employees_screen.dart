@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/api_constants.dart';
@@ -19,6 +20,7 @@ class _AmEmployeesScreenState extends ConsumerState<AmEmployeesScreen> {
   bool _loadingMore = false;
   String? _error;
   int _page = 1;
+  int _total = 0;
   int _lastPage = 1;
   int? _selectedClientId;
   String _statusFilter = 'all';
@@ -83,6 +85,7 @@ class _AmEmployeesScreenState extends ConsumerState<AmEmployeesScreen> {
         setState(() {
           _employees = (d['data'] as List).map((e) => Map<String, dynamic>.from(e)).toList();
           _lastPage = d['last_page'] ?? 1;
+          _total = d['total'] ?? 0;
           _page = 1;
           _loading = false;
         });
@@ -109,6 +112,7 @@ class _AmEmployeesScreenState extends ConsumerState<AmEmployeesScreen> {
           _employees.addAll((d['data'] as List).map((e) => Map<String, dynamic>.from(e)));
           _page++;
           _lastPage = d['last_page'] ?? 1;
+          _total = d['total'] ?? _total;
           _loadingMore = false;
         });
       }
@@ -166,7 +170,10 @@ class _AmEmployeesScreenState extends ConsumerState<AmEmployeesScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('Employees', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-          Text('${_employees.length} employee${_employees.length == 1 ? '' : 's'} across your managed clients',
+          // _employees.length is whatever has been paged in so far — it read
+          // "20 employees" on a client with 439. The server already returns the
+          // true total; it was simply being ignored.
+          Text('${_total > 0 ? _total : _employees.length} employee${_total == 1 ? '' : 's'} across your managed clients',
               style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
           const SizedBox(height: 14),
           TextField(
@@ -283,7 +290,13 @@ class _EmployeeCard extends StatelessWidget {
         border: Border.all(color: AppColors.cardBorder),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6, offset: const Offset(0, 2))],
       ),
-      child: Padding(
+      // The cards had no tap handler, so the list was a dead end: you could see
+      // 439 names and open none of them. The detail screen already existed and
+      // nothing routed to it.
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => context.push('/employees/${employee['id']}'),
+        child: Padding(
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
@@ -345,6 +358,7 @@ class _EmployeeCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }
