@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/models/am_visit_model.dart';
 import '../../core/providers/am_visit_provider.dart';
+import '../../core/services/location_disclosure.dart';
 
 class AmVisitsScreen extends ConsumerStatefulWidget {
   const AmVisitsScreen({super.key});
@@ -325,6 +326,13 @@ class _AmVisitsScreenState extends ConsumerState<AmVisitsScreen> {
   // ─── Location ─────────────────────────────────────────────────────────────
 
   Future<Position> _getLocation() async {
+    // Gated here rather than at each button: clocking in and out of a visit both
+    // come through this method, and one gate cannot drift out of step with the
+    // other.
+    if (!await LocationDisclosure.ensure(context, purpose: LocationDisclosure.siteVisit)) {
+      throw Exception('Location is needed to record a site visit.');
+    }
+
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       throw Exception('Location services are disabled. Enable GPS and try again.');

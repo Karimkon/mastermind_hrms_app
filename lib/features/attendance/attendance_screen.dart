@@ -5,6 +5,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/providers/attendance_provider.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/models/attendance_model.dart';
+import '../../core/services/location_disclosure.dart';
 
 class AttendanceScreen extends ConsumerStatefulWidget {
   const AttendanceScreen({super.key});
@@ -166,6 +167,11 @@ class _TodayBar extends StatelessWidget {
               if (!isClockedOut)
                 ElevatedButton.icon(
                   onPressed: () async {
+                    if (!await LocationDisclosure.ensure(context,
+                        purpose: LocationDisclosure.clockIn)) {
+                      return;
+                    }
+
                     try {
                       if (isClockedIn) {
                         await ref.read(attendanceTodayProvider.notifier).clockOut();

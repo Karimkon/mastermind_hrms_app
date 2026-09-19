@@ -83,6 +83,9 @@ class AttendanceTodayNotifier extends AsyncNotifier<AttendanceTodayState> {
 
   Future<Position?> _getPosition() async {
     try {
+      // Reached only after LocationDisclosure.ensure() has been shown at the
+      // screen that called this. Play rejects an app that goes straight to the
+      // system prompt, so a new caller must gate itself the same way.
       var perm = await Geolocator.checkPermission();
       if (perm == LocationPermission.denied) {
         perm = await Geolocator.requestPermission();

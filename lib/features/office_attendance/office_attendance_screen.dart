@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/models/office_attendance_model.dart';
 import '../../core/providers/office_attendance_provider.dart';
+import '../../core/services/location_disclosure.dart';
 
 /// Daily office presence register.
 ///
@@ -26,6 +27,16 @@ class _OfficeAttendanceScreenState extends ConsumerState<OfficeAttendanceScreen>
 
   Future<void> _punch({required bool clockIn}) async {
     if (_busy) return;
+
+    // Play requires the disclosure before the system permission prompt, and
+    // somebody handing their employer their position should read a sentence
+    // rather than infer it from "Allow access to this device's location?".
+    // Declining returns without punching, so nothing is sent half-done.
+    if (!await LocationDisclosure.ensure(context, purpose: LocationDisclosure.clockIn)) {
+      return;
+    }
+
+    if (!mounted) return;
     setState(() => _busy = true);
 
     final messenger = ScaffoldMessenger.of(context);

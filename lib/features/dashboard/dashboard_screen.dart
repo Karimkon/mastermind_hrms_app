@@ -8,6 +8,7 @@ import '../../core/providers/auth_provider.dart';
 import '../../core/providers/dashboard_provider.dart';
 import '../../core/providers/attendance_provider.dart';
 import '../../core/models/attendance_model.dart';
+import '../../core/services/location_disclosure.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -153,6 +154,11 @@ class _ClockButton extends StatelessWidget {
 
     return ElevatedButton.icon(
       onPressed: () async {
+        if (!await LocationDisclosure.ensure(context,
+            purpose: LocationDisclosure.clockIn)) {
+          return;
+        }
+
         if (isClockedIn) {
           await ref.read(attendanceTodayProvider.notifier).clockOut();
         } else {
