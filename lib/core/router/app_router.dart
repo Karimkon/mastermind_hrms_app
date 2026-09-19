@@ -36,6 +36,9 @@ import '../../features/am_visits/am_leaves_screen.dart';
 import '../../features/am_visits/am_payroll_screen.dart';
 import '../../features/am_visits/am_salary_payments_screen.dart';
 import '../../features/appraisals/appraisals_screen.dart';
+import '../../features/workforce/holiday_pay_screen.dart';
+import '../../features/workforce/onboarding_screen.dart';
+import '../../features/workforce/pips_screen.dart';
 import '../../features/appraisals/appraisal_detail_screen.dart';
 import '../../features/bsc/bsc_screen.dart';
 import '../../features/bsc/bsc_my_appraisal_screen.dart';
@@ -135,6 +138,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           // Appraisal cards. The /bsc routes below remain reachable while the
           // old cycles are archived, but nothing navigates to them any more.
           GoRoute(path: '/appraisals',          builder: (_, _) => const AppraisalsScreen()),
+          GoRoute(path: '/holiday-pay',         builder: (_, _) => const HolidayPayScreen()),
+          GoRoute(path: '/onboarding',          builder: (_, _) => const OnboardingScreen()),
+          GoRoute(path: '/pips',                builder: (_, _) => const PipsScreen()),
           GoRoute(
             path: '/appraisals/:id',
             builder: (_, st) => AppraisalDetailScreen(
