@@ -109,6 +109,8 @@ class _AppShellState extends ConsumerState<AppShell> {
       items.add(_NavItem(icon: Icons.bar_chart_rounded, label: 'Performance', path: '/performance'));
       items.add(_NavItem(icon: Icons.assignment_rounded, label: 'Appraisals', path: '/appraisals'));
       items.add(_NavItem(icon: Icons.event_available_rounded, label: 'Holiday Pay', path: '/holiday-pay'));
+      items.add(_NavItem(icon: Icons.schedule_rounded, label: 'Shifts', path: '/shifts'));
+      items.add(_NavItem(icon: Icons.tune_rounded, label: 'Salary Structure', path: '/salary-structure'));
       // Payroll pays only approved overtime, so this screen gates real money.
       items.add(_NavItem(
         icon: Icons.hourglass_bottom_rounded, label: 'Overtime Approval', path: '/overtime'));
@@ -346,6 +348,8 @@ class _MobileAppBar extends StatelessWidget implements PreferredSizeWidget {
       '/am-salary-payments': 'Salary Payments',
       '/appraisals': 'Appraisals',
       '/holiday-pay': 'Holiday Pay',
+      '/shifts': 'Shifts',
+      '/salary-structure': 'Salary Structure',
       '/onboarding': 'Onboarding',
       '/pips': 'Improvement Plans',
       '/bsc/my-appraisal': 'My Appraisal',
@@ -720,7 +724,7 @@ class _TopBar extends StatelessWidget {
   }
 
   String _titleFor(String location) {
-    const titles = {'/dashboard': 'Dashboard', '/attendance': 'Attendance', '/leaves': 'Leave Management', '/my-payslips': 'My Payslips', '/my-documents': 'My Documents', '/payroll': 'Payroll', '/employees/': 'Employee Details', '/employees': 'Employees', '/recruitment/jobs': 'Jobs', '/recruitment/candidates': 'Candidates', '/recruitment/interviews': 'Interviews', '/performance': 'Performance', '/training': 'Training', '/meetings': 'Meetings', '/reports': 'Reports', '/profile': 'My Profile', '/admin/users': 'Users', '/admin/departments': 'Departments', '/admin/clients': 'Clients', '/admin/audit': 'Audit Logs', '/client/dashboard': 'Client Dashboard', '/client/leaves': 'Leave Approvals', '/client/recruitment': 'Recruitment Approvals', '/am-visits': 'Site Visits', '/appraisals': 'Appraisals', '/holiday-pay': 'Holiday Pay', '/onboarding': 'Onboarding', '/pips': 'Improvement Plans', '/bsc/my-appraisal': 'My BSC Appraisal', '/bsc': 'BSC Appraisals', '/probation': 'Probation Tracking'};
+    const titles = {'/dashboard': 'Dashboard', '/attendance': 'Attendance', '/leaves': 'Leave Management', '/my-payslips': 'My Payslips', '/my-documents': 'My Documents', '/payroll': 'Payroll', '/employees/': 'Employee Details', '/employees': 'Employees', '/recruitment/jobs': 'Jobs', '/recruitment/candidates': 'Candidates', '/recruitment/interviews': 'Interviews', '/performance': 'Performance', '/training': 'Training', '/meetings': 'Meetings', '/reports': 'Reports', '/profile': 'My Profile', '/admin/users': 'Users', '/admin/departments': 'Departments', '/admin/clients': 'Clients', '/admin/audit': 'Audit Logs', '/client/dashboard': 'Client Dashboard', '/client/leaves': 'Leave Approvals', '/client/recruitment': 'Recruitment Approvals', '/am-visits': 'Site Visits', '/appraisals': 'Appraisals', '/holiday-pay': 'Holiday Pay', '/shifts': 'Shifts', '/salary-structure': 'Salary Structure', '/onboarding': 'Onboarding', '/pips': 'Improvement Plans', '/bsc/my-appraisal': 'My BSC Appraisal', '/bsc': 'BSC Appraisals', '/probation': 'Probation Tracking'};
     for (final e in titles.entries) { if (location.startsWith(e.key)) return e.value; }
     return 'Mastermind HRMS';
   }
