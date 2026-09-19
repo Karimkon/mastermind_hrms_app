@@ -91,6 +91,21 @@ class AppraisalActions extends Notifier<AsyncValue<void>> {
     return _post('$_base/$id/send-back', {'comment': comment});
   }
 
+  /// What the employee says they achieved, before anybody rates them.
+  ///
+  /// Only touched rows are sent, and saving is deliberately not submitting: a
+  /// card of nineteen KRAs is not completed in one sitting on a handset.
+  Future<bool> saveSelfAssessment(int id, Map<int, Map<String, dynamic>> kpis) {
+    return _post('$_base/$id/self-assessment', {
+      'kpi': kpis.map((k, v) => MapEntry(k.toString(), v)),
+    });
+  }
+
+  /// Hand the card to the appraiser. The server refuses an unrated KPI.
+  Future<bool> submitSelfAssessment(int id) {
+    return _post('$_base/$id/self-assessment/submit', {});
+  }
+
   Future<bool> selfAppraise(int id, String comment) {
     return _post('$_base/$id/self', {'employee_comment': comment});
   }

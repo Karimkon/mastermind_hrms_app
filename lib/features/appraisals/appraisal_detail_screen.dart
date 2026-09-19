@@ -111,6 +111,9 @@ class _AppraisalDetailScreenState extends ConsumerState<AppraisalDetailScreen> {
     final move = a['your_move'] as String?;
     final kpis = List<Map<String, dynamic>>.from(a['kpis'] ?? []);
     final canScore = move == 'score';
+    // The employee's own turn, before anybody rates them: the same rows, a
+    // different author, a different field.
+    final canSelfAssess = move == 'self_assess';
 
     return Column(
       children: [
@@ -129,15 +132,24 @@ class _AppraisalDetailScreenState extends ConsumerState<AppraisalDetailScreen> {
                 ...kpis.map((k) => _KpiTile(
                       kpi: k,
                       editable: canScore,
+                      selfAssessing: canSelfAssess,
                       draft: _edits[k['id'] as int],
                       onChanged: (field, value) {
                         setState(() {
                           final id = k['id'] as int;
-                          _edits.putIfAbsent(id, () => {
-                                'actual_achieved': k['actual_achieved'],
-                                'rating': k['rating'],
-                                'evidence_note': k['evidence_note'],
-                              });
+                          _edits.putIfAbsent(
+                              id,
+                              () => canSelfAssess
+                                  ? {
+                                      'actual_achieved': k['actual_achieved'],
+                                      'self_rating': k['self_rating'],
+                                      'self_note': k['self_note'],
+                                    }
+                                  : {
+                                      'actual_achieved': k['actual_achieved'],
+                                      'rating': k['rating'],
+                                      'evidence_note': k['evidence_note'],
+                                    });
                           _edits[id]![field] = value;
                         });
                       },
@@ -245,6 +257,23 @@ class _AppraisalDetailScreenState extends ConsumerState<AppraisalDetailScreen> {
         border: Border(top: BorderSide(color: AppColors.cardBorder)),
       ),
       child: switch (move) {
+        'self_assess' => Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _busy || _edits.isEmpty ? null : _saveSelfAssessment,
+                  child: Text(_edits.isEmpty ? 'No changes' : 'Save progress'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _busy ? null : () => _submitSelfAssessment(a, kpis),
+                  child: const Text('Submit'),
+                ),
+              ),
+            ],
+          ),
         'score' => Row(
             children: [
               Expanded(
@@ -293,6 +322,85 @@ class _AppraisalDetailScreenState extends ConsumerState<AppraisalDetailScreen> {
   }
 
   // ── actions ────────────────────────────────────────────────────────────
+
+  Future<void> _saveSelfAssessment() async {
+    await _run(
+      () => ref
+          .read(appraisalActionsProvider.notifier)
+          .saveSelfAssessment(widget.appraisalId, _edits),
+      'Saved. You can come back to this before submitting.',
+    );
+  }
+
+  /// Submitting is one-way, so the state of the card is stated before the tap
+  /// rather than refused after it.
+  Future<void> _submitSelfAssessment(
+      Map<String, dynamic> a, List<Map<String, dynamic>> kpis) async {
+    // Counted from the card plus anything typed but not yet saved, so the
+    // warning matches what the person is looking at.
+    final unrated = kpis.where((k) {
+      final draft = _edits[k['id'] as int];
+      final rating = draft != null && draft.containsKey('self_rating')
+          ? draft['self_rating']
+          : k['self_rating'];
+      return rating == null;
+    }).length;
+
+    if (unrated > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('$unrated of ${kpis.length} still need a self-rating.'),
+        backgroundColor: AppColors.warning,
+      ));
+      return;
+    }
+
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Send this for scoring?'),
+        content: Text(
+          'It goes to ${a['appraiser_name'] ?? 'your appraiser'}, and you will not be '
+          'able to change it afterwards. You will see it again at the end to read '
+          'the final ratings and sign it off.',
+          style: const TextStyle(fontSize: 13.5, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false), child: const Text('Not yet')),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true), child: const Text('Submit')),
+        ],
+      ),
+    );
+
+    if (ok != true) return;
+
+    // Saved first: anything typed since the last save would otherwise be lost
+    // the moment the card leaves their hands.
+    if (_edits.isNotEmpty) {
+      setState(() => _busy = true);
+      final saved = await ref
+          .read(appraisalActionsProvider.notifier)
+          .saveSelfAssessment(widget.appraisalId, _edits);
+      if (!mounted) return;
+      setState(() => _busy = false);
+
+      if (!saved) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Could not save your last changes, so nothing was submitted.'),
+          backgroundColor: AppColors.error,
+        ));
+        return;
+      }
+    }
+
+    await _run(
+      () => ref
+          .read(appraisalActionsProvider.notifier)
+          .submitSelfAssessment(widget.appraisalId),
+      'Submitted. Your appraiser will score it next.',
+    );
+  }
 
   Future<void> _saveScores() async {
     await _run(
@@ -500,20 +608,28 @@ class _Label extends StatelessWidget {
 class _KpiTile extends StatelessWidget {
   final Map<String, dynamic> kpi;
   final bool editable;
+  final bool selfAssessing;
   final Map<String, dynamic>? draft;
   final void Function(String field, dynamic value) onChanged;
 
   const _KpiTile({
     required this.kpi,
     required this.editable,
+    this.selfAssessing = false,
     required this.draft,
     required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    final rating = (draft?['rating'] ?? kpi['rating']) as int?;
+    // Which field this row writes depends on whose turn it is. The employee
+    // writes self_rating, the appraiser writes rating; they never share one.
+    final field = selfAssessing ? 'self_rating' : 'rating';
+    final rating = (draft?[field] ?? kpi[field]) as int?;
     final actual = (draft?['actual_achieved'] ?? kpi['actual_achieved'])?.toString() ?? '';
+    final selfRating = kpi['self_rating'] as int?;
+    final selfNote = (kpi['self_note'] ?? '').toString();
+    final open = editable || selfAssessing;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -522,7 +638,7 @@ class _KpiTile extends StatelessWidget {
         color: AppColors.cardBg,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: rating == null && editable ? AppColors.warning.withValues(alpha: 0.5) : AppColors.cardBorder,
+          color: rating == null && open ? AppColors.warning.withValues(alpha: 0.5) : AppColors.cardBorder,
         ),
       ),
       child: Column(
@@ -549,10 +665,24 @@ class _KpiTile extends StatelessWidget {
             children: [
               _pill('Target', kpi['target']?.toString() ?? '—'),
               const SizedBox(width: 8),
-              if (!editable) _pill('Actual', actual.isEmpty ? '—' : actual),
+              if (!open) _pill('Actual', actual.isEmpty ? '—' : actual),
+              // Put in front of the appraiser while they score, so they rate
+              // with the employee's own account in view rather than after it.
+              if (editable && selfRating != null) ...[
+                const SizedBox(width: 8),
+                _pill('Self-rated', '$selfRating'),
+              ],
             ],
           ),
-          if (editable) ...[
+          if (editable && selfNote.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text('“$selfNote”',
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                    color: AppColors.textSecondary)),
+          ],
+          if (open) ...[
             const SizedBox(height: 12),
             TextFormField(
               initialValue: actual,
@@ -563,9 +693,22 @@ class _KpiTile extends StatelessWidget {
               ),
               onChanged: (v) => onChanged('actual_achieved', v),
             ),
+            if (selfAssessing) ...[
+              const SizedBox(height: 12),
+              TextFormField(
+                initialValue: selfNote,
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'Anything worth saying about this',
+                  isDense: true,
+                  border: OutlineInputBorder(),
+                ),
+                onChanged: (v) => onChanged('self_note', v),
+              ),
+            ],
             const SizedBox(height: 12),
-            const Text('Rating',
-                style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textMuted)),
+            Text(selfAssessing ? 'Your rating' : 'Rating',
+                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textMuted)),
             const SizedBox(height: 6),
             // Five taps, not a dropdown. Rating is the single most repeated
             // action on this screen and it should cost one touch.
@@ -578,7 +721,7 @@ class _KpiTile extends StatelessWidget {
                     padding: EdgeInsets.only(right: i == 4 ? 0 : 6),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(8),
-                      onTap: () => onChanged('rating', value),
+                      onTap: () => onChanged(field, value),
                       child: Container(
                         height: 40,
                         alignment: Alignment.center,
@@ -612,6 +755,16 @@ class _KpiTile extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
+                // Where the two disagree by more than a point, say so. That gap
+                // is the conversation, not an error to reconcile quietly.
+                if (selfRating != null && (selfRating - rating).abs() > 1) ...[
+                  Text('self-rated $selfRating',
+                      style: const TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.warning)),
+                  const SizedBox(width: 8),
+                ],
                 if (kpi['weighted_index'] != null)
                   Text('index ${(kpi['weighted_index'] as num).toStringAsFixed(2)}',
                       style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted)),
