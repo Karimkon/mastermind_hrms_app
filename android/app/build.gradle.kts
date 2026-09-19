@@ -41,8 +41,15 @@ android {
         applicationId = "com.mastermind.consultants.hrms"
         minSdk = flutter.minSdkVersion
         targetSdk     = flutter.targetSdkVersion
-        versionCode   = 14
-        versionName   = "1.0.14"
+        // Taken from pubspec.yaml's `version:` rather than written here.
+        //
+        // These were pinned at 14 / "1.0.14" while the pubspec had moved on to
+        // 1.2.0+16, so every Android build since carried the old number whatever
+        // the pubspec said — and Play rejects a bundle whose versionCode it has
+        // already seen. One source of truth avoids shipping a release that looks
+        // like the previous one.
+        versionCode   = flutter.versionCode
+        versionName   = flutter.versionName
     }
 
     buildTypes {
