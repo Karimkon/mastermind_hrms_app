@@ -91,7 +91,7 @@ class _Card extends StatelessWidget {
     child: Column(children: [
       Padding(padding: const EdgeInsets.fromLTRB(20, 16, 12, 16), child: Row(children: [
         Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14))),
-        if (action != null) action!,
+        ?action,
       ])),
       const Divider(height: 1),
       Padding(padding: const EdgeInsets.all(16), child: child),

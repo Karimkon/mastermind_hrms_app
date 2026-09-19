@@ -230,7 +230,7 @@ class _AddUserDialogState extends ConsumerState<_AddUserDialog> {
               TextFormField(controller: _passCtrl, obscureText: true, decoration: const InputDecoration(labelText: 'Password'), validator: (v) => v?.isEmpty == true ? 'Required' : null),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _role,
+                initialValue: _role,
                 decoration: const InputDecoration(labelText: 'Role'),
                 items: const [
                   DropdownMenuItem(value: 'super-admin', child: Text('Super Admin')),

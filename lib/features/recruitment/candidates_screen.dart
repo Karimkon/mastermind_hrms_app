@@ -185,7 +185,7 @@ class _CandidateRow extends StatelessWidget {
               Container(
                 width: 36,
                 height: 36,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: scoreColor.withOpacity(0.1)),
+                decoration: BoxDecoration(shape: BoxShape.circle, color: scoreColor.withValues(alpha: 0.1)),
                 child: Center(child: Text('$score', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: scoreColor))),
               ),
             ],

@@ -34,8 +34,8 @@ class BscScreen extends ConsumerWidget {
               loading: () => ListView.separated(
                 padding: const EdgeInsets.all(20),
                 itemCount: 3,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (_, __) => Container(
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
+                itemBuilder: (_, _) => Container(
                   height: 76,
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -57,7 +57,7 @@ class BscScreen extends ConsumerWidget {
                   : ListView.separated(
                       padding: const EdgeInsets.all(20),
                       itemCount: cycles.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
                       itemBuilder: (_, i) => _CycleCard(cycle: cycles[i]),
                     ),
             ),
@@ -158,7 +158,7 @@ class _CycleSummaryBanner extends StatelessWidget {
     decoration: BoxDecoration(
       color: AppColors.infoLight,
       borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+      border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
     ),
     child: Row(children: [
       const Icon(Icons.bar_chart_rounded, color: AppColors.primary, size: 20),
@@ -362,10 +362,10 @@ class _StatChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+    decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
     child: Column(children: [
       Text(label, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12, color: color)),
-      Text(sublabel, style: TextStyle(fontSize: 9, color: color.withOpacity(0.8))),
+      Text(sublabel, style: TextStyle(fontSize: 9, color: color.withValues(alpha: 0.8))),
     ]),
   );
 }

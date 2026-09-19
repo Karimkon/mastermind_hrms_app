@@ -47,7 +47,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
         if (!user.isAdmin)
           todayAsync.when(
             loading: () => const LinearProgressIndicator(),
-            error: (_, __) => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
             data: (state) => _TodayBar(state: state, ref: ref),
           ),
 

@@ -79,7 +79,7 @@ class AmVisitNotifier extends AsyncNotifier<AmVisitHistoryState> {
       'client_id': clientId,
       'lat':       lat,
       'lng':       lng,
-      if (notes != null) 'notes': notes,
+      'notes': ?notes,
     });
     await refresh();
     final message = resp.data['message'] as String? ?? 'Clocked in.';
@@ -95,9 +95,9 @@ class AmVisitNotifier extends AsyncNotifier<AmVisitHistoryState> {
   }) async {
     final resp = await ApiService.post(ApiConstants.amVisitClockOut, data: {
       'session_id': sessionId,
-      if (lat != null) 'lat': lat,
-      if (lng != null) 'lng': lng,
-      if (notes != null) 'notes': notes,
+      'lat': ?lat,
+      'lng': ?lng,
+      'notes': ?notes,
     });
     await refresh();
     return resp.data['message'] as String? ?? 'Clocked out.';

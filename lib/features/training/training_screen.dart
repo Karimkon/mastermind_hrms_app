@@ -20,7 +20,7 @@ class TrainingScreen extends ConsumerWidget {
           // Certifications row
           certsAsync.when(
             loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
             data: (certs) => certs.isEmpty ? const SizedBox.shrink() : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -44,7 +44,7 @@ class TrainingScreen extends ConsumerWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, childAspectRatio: 0.85, crossAxisSpacing: 16, mainAxisSpacing: 16),
                 itemCount: 6,
-                itemBuilder: (_, __) => Container(decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12))),
+                itemBuilder: (_, _) => Container(decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12))),
               ),
             ),
             error: (e, _) => Center(child: Padding(

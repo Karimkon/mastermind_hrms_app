@@ -5,6 +5,21 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/payroll_provider.dart';
 
+/// The one approval stage a run is currently at, or null if it is not waiting on
+/// an approval at all.
+///
+/// Payroll is released by three different roles in a fixed order — HR confirm the
+/// figures, Finance confirm the company can pay them, the MD releases the money —
+/// and the server rejects any stage taken out of turn. Deriving the button from
+/// the run's status keeps the phone honest about which decision is actually due,
+/// instead of offering one generic "Approve" that used to skip the other two.
+({String key, String label, String done})? _approvalStage(String status) => switch (status) {
+      'processed' => (key: 'hr', label: 'HR Approve', done: 'HR approved. Finance is next.'),
+      'hr_approved' => (key: 'finance', label: 'Finance Approve', done: 'Finance approved. The MD is next.'),
+      'finance_approved' => (key: 'md', label: 'MD Approve & Lock', done: 'MD approved. Payroll is locked.'),
+      _ => null,
+    };
+
 class PayrollScreen extends ConsumerWidget {
   const PayrollScreen({super.key});
 
@@ -70,7 +85,7 @@ class PayrollScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<int>(
-                value: selectedMonth,
+                initialValue: selectedMonth,
                 decoration: const InputDecoration(labelText: 'Month', border: OutlineInputBorder()),
                 items: List.generate(12, (i) => DropdownMenuItem(
                   value: i + 1,
@@ -80,7 +95,7 @@ class PayrollScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
-                value: selectedYear,
+                initialValue: selectedYear,
                 decoration: const InputDecoration(labelText: 'Year', border: OutlineInputBorder()),
                 items: List.generate(6, (i) {
                   final y = DateTime.now().year - 2 + i;
@@ -186,16 +201,21 @@ class _PayrollRunCard extends StatelessWidget {
                 if (status == 'draft')
                   ElevatedButton(
                     onPressed: () async {
+                      final messenger = ScaffoldMessenger.of(context);
                       final ok = await ref.read(payrollActionsProvider.notifier).processPayroll(run['id'] as int);
                       if (ok) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        messenger.showSnackBar(const SnackBar(
                             content: Text('Payroll processed'), backgroundColor: AppColors.success));
                         ref.invalidate(payrollRunsProvider);
                       }
                     },
                     child: const Text('Process'),
                   ),
-                if (status == 'processed') ...[
+                // Three approvals by three roles, in order. The button shown is
+                // the one stage this run is actually at: offering a generic
+                // "Approve" was how the phone came to skip Finance and the MD
+                // entirely, and the server now refuses anything out of order.
+                if (_approvalStage(status) != null) ...[
                   OutlinedButton(
                     onPressed: () => _showPayslips(context, run['id'] as int),
                     child: const Text('View Payslips'),
@@ -203,14 +223,30 @@ class _PayrollRunCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   ElevatedButton(
                     onPressed: () async {
-                      final ok = await ref.read(payrollActionsProvider.notifier).approvePayroll(run['id'] as int);
+                      final messenger = ScaffoldMessenger.of(context);
+                      final stage = _approvalStage(status)!;
+                      final notifier = ref.read(payrollActionsProvider.notifier);
+
+                      final ok = switch (stage.key) {
+                        'hr' => await notifier.hrApprovePayroll(run['id'] as int),
+                        'finance' => await notifier.financeApprovePayroll(run['id'] as int),
+                        _ => await notifier.mdApprovePayroll(run['id'] as int),
+                      };
+
                       if (ok) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                            content: Text('Payroll approved'), backgroundColor: AppColors.success));
+                        messenger.showSnackBar(SnackBar(
+                            content: Text(stage.done), backgroundColor: AppColors.success));
                         ref.invalidate(payrollRunsProvider);
+                      } else {
+                        // The server refuses a stage the signed-in user does not
+                        // hold, and saying so plainly is more useful than a button
+                        // that silently does nothing.
+                        messenger.showSnackBar(const SnackBar(
+                            content: Text("You do not hold this approval stage, or it is not this run's turn."),
+                            backgroundColor: AppColors.error));
                       }
                     },
-                    child: const Text('Approve'),
+                    child: Text(_approvalStage(status)!.label),
                   ),
                 ],
                 if (status == 'approved') ...[
@@ -315,8 +351,8 @@ class _PayslipsSheet extends ConsumerWidget {
                 child: ListView.separated(
                   padding: const EdgeInsets.all(20),
                   itemCount: 3,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (_, __) => Container(height: 100, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12))),
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
+                  itemBuilder: (_, _) => Container(height: 100, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12))),
                 ),
               ),
               error: (e, _) => Center(child: Padding(
@@ -335,7 +371,7 @@ class _PayslipsSheet extends ConsumerWidget {
                 return ListView.separated(
                   controller: ctrl,
                   padding: const EdgeInsets.all(16),
-                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  separatorBuilder: (_, _) => const Divider(height: 1),
                   itemCount: payslips.length,
                   itemBuilder: (_, i) {
                     final p = payslips[i];

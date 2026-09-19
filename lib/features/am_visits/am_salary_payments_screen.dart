@@ -482,7 +482,7 @@ class _PaymentFormSheetState extends State<_PaymentFormSheet> {
                     // Employee
                     _label('Employee *'),
                     DropdownButtonFormField<int>(
-                      value: _empId,
+                      initialValue: _empId,
                       hint: const Text('Select Employee'),
                       decoration: _dec(),
                       items: widget.employees.map((e) => DropdownMenuItem(
@@ -504,7 +504,7 @@ class _PaymentFormSheetState extends State<_PaymentFormSheet> {
                     // Client
                     _label('Client *'),
                     DropdownButtonFormField<int>(
-                      value: _clientId,
+                      initialValue: _clientId,
                       hint: const Text('Select Client'),
                       decoration: _dec(),
                       items: widget.clients.map((c) => DropdownMenuItem(
@@ -520,14 +520,14 @@ class _PaymentFormSheetState extends State<_PaymentFormSheet> {
                     _label('Pay Period *'),
                     Row(children: [
                       Expanded(child: DropdownButtonFormField<int>(
-                        value: _month,
+                        initialValue: _month,
                         decoration: _dec(),
                         items: List.generate(12, (i) => DropdownMenuItem(value: i + 1, child: Text(_months[i]))),
                         onChanged: (v) => setState(() => _month = v!),
                       )),
                       const SizedBox(width: 10),
                       Expanded(child: DropdownButtonFormField<int>(
-                        value: _year,
+                        initialValue: _year,
                         decoration: _dec(),
                         items: List.generate(6, (i) => DateTime.now().year - i).map((y) => DropdownMenuItem(value: y, child: Text('$y'))).toList(),
                         onChanged: (v) => setState(() => _year = v!),
@@ -593,7 +593,7 @@ class _PaymentFormSheetState extends State<_PaymentFormSheet> {
 
                     _label('Payment Method'),
                     DropdownButtonFormField<String>(
-                      value: _method,
+                      initialValue: _method,
                       hint: const Text('Select method'),
                       decoration: _dec(),
                       items: const [
@@ -702,7 +702,7 @@ Widget _totalBox(String label, double value, Color color) {
   final fmt = NumberFormat('#,##0', 'en');
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-    decoration: BoxDecoration(color: color.withOpacity(0.06), borderRadius: BorderRadius.circular(8), border: Border.all(color: color.withOpacity(0.2))),
+    decoration: BoxDecoration(color: color.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(8), border: Border.all(color: color.withValues(alpha: 0.2))),
     child: Row(
       children: [
         Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color)),

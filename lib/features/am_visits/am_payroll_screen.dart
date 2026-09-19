@@ -141,7 +141,6 @@ class _AmPayrollScreenState extends ConsumerState<AmPayrollScreen> {
   }
 
   Widget _buildSummaryCards() {
-    final totalGross = _runs.fold<double>(0, (s, r) => s + ((r['total_gross'] as num?)?.toDouble() ?? 0));
     final totalNet   = _runs.fold<double>(0, (s, r) => s + ((r['total_net']   as num?)?.toDouble() ?? 0));
     final totalEmps  = _runs.fold<int>(0, (s, r) => s + ((r['employee_count'] as int?) ?? 0));
 
@@ -202,7 +201,7 @@ class _RunCard extends StatelessWidget {
           color: AppColors.cardBg,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: isLocked ? AppColors.errorLight : AppColors.cardBorder),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6, offset: const Offset(0, 2))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6, offset: const Offset(0, 2))],
         ),
         child: Padding(
           padding: const EdgeInsets.all(14),
@@ -549,7 +548,7 @@ class _Chip extends StatelessWidget {
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: selected ? color.withOpacity(0.12) : AppColors.surface,
+          color: selected ? color.withValues(alpha: 0.12) : AppColors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: selected ? color : AppColors.inputBorder, width: selected ? 1.5 : 1),
         ),

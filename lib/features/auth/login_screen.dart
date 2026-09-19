@@ -84,7 +84,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                         decoration: BoxDecoration(
                           color: AppColors.errorLight,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                          border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
                         ),
                         child: Row(children: [
                           const Icon(Icons.error_outline, color: AppColors.error, size: 18),
@@ -287,7 +287,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                             decoration: BoxDecoration(
                               color: AppColors.errorLight,
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                              border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
                             ),
                             child: Row(
                               children: [
@@ -383,9 +383,9 @@ class _FeaturePill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.06),
+        color: Colors.white.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

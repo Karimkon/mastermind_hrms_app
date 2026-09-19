@@ -217,7 +217,7 @@ class _DocumentCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: typeColor.withOpacity(0.12),
+              color: typeColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -366,7 +366,7 @@ class _UploadDialogState extends ConsumerState<_UploadDialog> {
               const Text('Document Type *', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
               const SizedBox(height: 6),
               DropdownButtonFormField<String>(
-                value: _docType,
+                initialValue: _docType,
                 decoration: const InputDecoration(isDense: true),
                 items: _docTypes.map((t) => DropdownMenuItem(
                   value: t,

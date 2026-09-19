@@ -206,7 +206,7 @@ class _ScheduleDialogState extends ConsumerState<_ScheduleDialog> {
               TextFormField(controller: _candidateCtrl, decoration: const InputDecoration(labelText: 'Candidate ID'), validator: (v) => v?.isEmpty == true ? 'Required' : null),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _type,
+                initialValue: _type,
                 decoration: const InputDecoration(labelText: 'Interview Type'),
                 items: const [
                   DropdownMenuItem(value: 'phone', child: Text('Phone')),

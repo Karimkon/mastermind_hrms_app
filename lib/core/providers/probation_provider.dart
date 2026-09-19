@@ -71,8 +71,8 @@ class ProbationActionsNotifier extends Notifier<void> {
       '${ApiConstants.probation}/$employeeId/confirm',
       data: {
         'outcome': outcome,
-        if (notes != null) 'notes': notes,
-        if (newEndDate != null) 'new_probation_end_date': newEndDate,
+        'notes': ?notes,
+        'new_probation_end_date': ?newEndDate,
       },
     );
     ref.invalidate(probationListProvider);

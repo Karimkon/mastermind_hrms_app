@@ -117,7 +117,7 @@ class _CandidateReviewCard extends StatelessWidget {
                 height: 56,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: scoreColor.withOpacity(0.1),
+                  color: scoreColor.withValues(alpha: 0.1),
                   border: Border.all(color: scoreColor, width: 2),
                 ),
                 child: Center(
@@ -138,9 +138,10 @@ class _CandidateReviewCard extends StatelessWidget {
             children: [
               ElevatedButton.icon(
                 onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
                   await ApiService.post('${ApiConstants.clientRecruitment}/${candidate['id']}/approve');
                   ref.invalidate(_clientRecruitmentProvider);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Candidate approved'), backgroundColor: AppColors.success));
+                  messenger.showSnackBar(const SnackBar(content: Text('Candidate approved'), backgroundColor: AppColors.success));
                 },
                 icon: const Icon(Icons.thumb_up_rounded, size: 16),
                 label: const Text('Approve'),

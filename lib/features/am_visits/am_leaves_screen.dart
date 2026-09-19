@@ -342,7 +342,7 @@ class _LeaveCard extends StatelessWidget {
         color: AppColors.cardBg,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.cardBorder),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6, offset: const Offset(0, 2))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6, offset: const Offset(0, 2))],
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -517,7 +517,7 @@ class _Chip extends StatelessWidget {
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: selected ? activeColor.withOpacity(0.12) : AppColors.surface,
+          color: selected ? activeColor.withValues(alpha: 0.12) : AppColors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: selected ? activeColor : AppColors.inputBorder, width: selected ? 1.5 : 1),
         ),

@@ -118,9 +118,10 @@ class _LeaveApprovalCard extends StatelessWidget {
             children: [
               ElevatedButton.icon(
                 onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
                   await ApiService.post('${ApiConstants.clientLeaves}/${leave['id']}/approve');
                   ref.invalidate(_clientLeavesProvider);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Leave approved'), backgroundColor: AppColors.success));
+                  messenger.showSnackBar(const SnackBar(content: Text('Leave approved'), backgroundColor: AppColors.success));
                 },
                 icon: const Icon(Icons.check_rounded, size: 16),
                 label: const Text('Approve'),
@@ -129,9 +130,10 @@ class _LeaveApprovalCard extends StatelessWidget {
               const SizedBox(width: 8),
               OutlinedButton.icon(
                 onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
                   await ApiService.post('${ApiConstants.clientLeaves}/${leave['id']}/reject');
                   ref.invalidate(_clientLeavesProvider);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Leave rejected'), backgroundColor: AppColors.error));
+                  messenger.showSnackBar(const SnackBar(content: Text('Leave rejected'), backgroundColor: AppColors.error));
                 },
                 icon: const Icon(Icons.close_rounded, size: 16, color: AppColors.error),
                 label: const Text('Reject', style: TextStyle(color: AppColors.error)),

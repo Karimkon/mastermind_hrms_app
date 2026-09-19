@@ -58,7 +58,7 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
                       style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: Color(0xFF1A1A2E))),
                   employeesAsync.when(
                     loading: () => const SizedBox.shrink(),
-                    error: (_, __) => const SizedBox.shrink(),
+                    error: (_, _) => const SizedBox.shrink(),
                     data: (list) => Text(
                       '${list.length} employee${list.length == 1 ? '' : 's'} across your managed clients',
                       style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
@@ -77,7 +77,7 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: const Color(0xFFE5E7EB)),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 6, offset: const Offset(0, 2))],
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2))],
                 ),
                 child: TextField(
                   controller: _searchCtrl,
@@ -96,7 +96,7 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
             // ── Company filter chips ──────────────────────────────────────
             clientsAsync.when(
               loading: () => const SizedBox(height: 8),
-              error: (_, __) => const SizedBox(height: 8),
+              error: (_, _) => const SizedBox(height: 8),
               data: (clients) {
                 if (clients.isEmpty) return const SizedBox(height: 8);
                 return Padding(
@@ -207,7 +207,7 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
               const SizedBox(width: 12),
               deptsAsync.when(
                 loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
+                error: (_, _) => const SizedBox.shrink(),
                 data: (depts) => DropdownButton<int?>(
                   value: _clientFilter,
                   underline: const SizedBox(),
@@ -333,7 +333,7 @@ class _EmployeeListTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
         ),
         child: Row(
           children: [
@@ -496,7 +496,7 @@ class _EmployeeGridCardState extends State<_EmployeeGridCard> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: _hovered ? AppColors.primary : AppColors.cardBorder),
-            boxShadow: _hovered ? [BoxShadow(color: AppColors.primary.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4))] : [],
+            boxShadow: _hovered ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 4))] : [],
           ),
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -576,14 +576,14 @@ class _AddEmployeeDialogState extends ConsumerState<_AddEmployeeDialog> {
             const SizedBox(height: 12),
             Row(children: [
               Expanded(child: DropdownButtonFormField<int>(
-                value: _deptId,
+                initialValue: _deptId,
                 decoration: const InputDecoration(labelText: 'Department'),
                 items: depts.map((d) => DropdownMenuItem<int>(value: d['id'] as int?, child: Text(d['name'] as String? ?? ''))).toList(),
                 onChanged: (v) => setState(() => _deptId = v),
               )),
               const SizedBox(width: 12),
               Expanded(child: DropdownButtonFormField<int>(
-                value: _desigId,
+                initialValue: _desigId,
                 decoration: const InputDecoration(labelText: 'Designation'),
                 items: desigs.map((d) => DropdownMenuItem<int>(value: d['id'] as int?, child: Text(d['name'] as String? ?? d['title'] as String? ?? ''))).toList(),
                 onChanged: (v) => setState(() => _desigId = v),
@@ -591,7 +591,7 @@ class _AddEmployeeDialogState extends ConsumerState<_AddEmployeeDialog> {
             ]),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _empType,
+              initialValue: _empType,
               decoration: const InputDecoration(labelText: 'Employment Type'),
               items: const [
                 DropdownMenuItem(value: 'full_time', child: Text('Full Time')),

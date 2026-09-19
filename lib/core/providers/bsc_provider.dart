@@ -81,7 +81,7 @@ class BscEntryNotifier extends Notifier<void> {
   Future<String> approveEntry(int entryId, {String? comment}) async {
     final resp = await ApiService.post(
       '${ApiConstants.bscEntries}/$entryId/approve',
-      data: {if (comment != null) 'appraiser_comment': comment},
+      data: {'appraiser_comment': ?comment},
     );
     ref.invalidate(bscTeamAppraisalProvider);
     return resp.data['message'] as String? ?? 'Approved.';

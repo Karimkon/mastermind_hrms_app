@@ -281,7 +281,7 @@ class _EmployeeCard extends StatelessWidget {
         color: AppColors.cardBg,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.cardBorder),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6, offset: const Offset(0, 2))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6, offset: const Offset(0, 2))],
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -397,7 +397,7 @@ class _FilterChip extends StatelessWidget {
         margin: const EdgeInsets.only(right: 8, bottom: 2),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: selected ? color.withOpacity(0.12) : AppColors.surface,
+          color: selected ? color.withValues(alpha: 0.12) : AppColors.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: selected ? color : AppColors.inputBorder, width: selected ? 1.5 : 1),
         ),

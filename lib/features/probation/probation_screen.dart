@@ -142,9 +142,20 @@ class _ProbationScreenState extends ConsumerState<ProbationScreen> {
           content: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
               const Text('Outcome:', style: TextStyle(fontWeight: FontWeight.w600)),
-              RadioListTile(title: const Text('Passed'), value: 'passed', groupValue: outcome, onChanged: (v) => setDState(() => outcome = v!), dense: true),
-              RadioListTile(title: const Text('Failed'), value: 'failed', groupValue: outcome, onChanged: (v) => setDState(() => outcome = v!), dense: true),
-              RadioListTile(title: const Text('Extended'), value: 'extended', groupValue: outcome, onChanged: (v) => setDState(() => outcome = v!), dense: true),
+              // RadioGroup replaces the per-tile groupValue/onChanged pair,
+              // which Flutter deprecated after 3.32.
+              RadioGroup<String>(
+                groupValue: outcome,
+                onChanged: (v) => setDState(() => outcome = v ?? outcome),
+                child: const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RadioListTile<String>(title: Text('Passed'), value: 'passed', dense: true),
+                    RadioListTile<String>(title: Text('Failed'), value: 'failed', dense: true),
+                    RadioListTile<String>(title: Text('Extended'), value: 'extended', dense: true),
+                  ],
+                ),
+              ),
               const SizedBox(height: 12),
               if (outcome == 'extended')
                 ElevatedButton.icon(
@@ -234,7 +245,7 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
     elevation: 0,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: color.withOpacity(0.3))),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: color.withValues(alpha: 0.3))),
     child: Padding(padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8), child: Column(children: [
       Text('$value', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: color)),
       Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary), textAlign: TextAlign.center, maxLines: 2),
@@ -305,7 +316,7 @@ class _EmployeeCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: isOverdue ? AppColors.error.withOpacity(0.5) : AppColors.cardBorder),
+        side: BorderSide(color: isOverdue ? AppColors.error.withValues(alpha: 0.5) : AppColors.cardBorder),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),

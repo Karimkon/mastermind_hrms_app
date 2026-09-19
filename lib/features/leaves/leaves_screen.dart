@@ -53,7 +53,7 @@ class _LeavesScreenState extends ConsumerState<LeavesScreen> with SingleTickerPr
                   child: Container(height: 88, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12))),
                 )))),
               ),
-              error: (_, __) => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
               data: (balances) => _LeaveBalanceCards(balances: balances),
             ),
             const SizedBox(height: 24),
@@ -111,6 +111,9 @@ class _LeavesScreenState extends ConsumerState<LeavesScreen> with SingleTickerPr
   }
 
   Future<void> _showRejectDialog(BuildContext context, int id) async {
+    // Captured up front: `context` here is a parameter, so the State's own
+    // `mounted` flag says nothing about whether it is still valid.
+    final messenger = ScaffoldMessenger.of(context);
     final ctrl = TextEditingController();
     final confirmed = await showDialog<bool>(
       context: context,
@@ -136,8 +139,8 @@ class _LeavesScreenState extends ConsumerState<LeavesScreen> with SingleTickerPr
     );
     if (confirmed == true) {
       final ok = await ref.read(leaveActionsProvider.notifier).rejectLeave(id, ctrl.text);
-      if (ok && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Leave rejected'), backgroundColor: AppColors.error));
+      if (ok) {
+        messenger.showSnackBar(const SnackBar(content: Text('Leave rejected'), backgroundColor: AppColors.error));
         ref.invalidate(leaveListProvider);
       }
     }
@@ -410,7 +413,7 @@ class _ApplyLeaveDialogState extends ConsumerState<_ApplyLeaveDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<int>(
-                value: _selectedTypeId,
+                initialValue: _selectedTypeId,
                 decoration: const InputDecoration(labelText: 'Leave Type'),
                 items: widget.types.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name))).toList(),
                 onChanged: (v) => setState(() => _selectedTypeId = v),

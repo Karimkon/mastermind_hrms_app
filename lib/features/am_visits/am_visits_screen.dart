@@ -509,7 +509,7 @@ class _ClockInCard extends StatelessWidget {
                   fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
           const SizedBox(height: 8),
           DropdownButtonFormField<int>(
-            value: selectedClientId,
+            initialValue: selectedClientId,
             decoration: InputDecoration(
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

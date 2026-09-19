@@ -99,7 +99,7 @@ class _GreetingCard extends ConsumerWidget {
           if (!user.isAdmin && !user.isClient && !user.isAccountManager)
             todayAsync.when(
               loading: () => const SizedBox(width: 120, child: Center(child: CircularProgressIndicator(color: Colors.white))),
-              error: (_, __) => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
               data: (state) => _ClockButton(today: state.log, ref: ref),
             ),
         ],
@@ -788,7 +788,7 @@ class _DashCard extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14))),
-                if (action != null) action!,
+                ?action,
               ],
             ),
           ),

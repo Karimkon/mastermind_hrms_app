@@ -27,15 +27,21 @@ class _MfaScreenState extends ConsumerState<MfaScreen> {
       await ref.read(authProvider.notifier).verifyMfa(widget.mfaToken, _code);
     } catch (e) {
       setState(() { _error = e.toString(); _loading = false; });
-      for (final c in _controllers) c.clear();
+      for (final c in _controllers) {
+        c.clear();
+      }
       _focusNodes[0].requestFocus();
     }
   }
 
   @override
   void dispose() {
-    for (final c in _controllers) c.dispose();
-    for (final f in _focusNodes) f.dispose();
+    for (final c in _controllers) {
+      c.dispose();
+    }
+    for (final f in _focusNodes) {
+      f.dispose();
+    }
     super.dispose();
   }
 
@@ -50,7 +56,7 @@ class _MfaScreenState extends ConsumerState<MfaScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 40)],
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 40)],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

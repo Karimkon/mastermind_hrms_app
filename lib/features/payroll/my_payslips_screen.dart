@@ -120,7 +120,7 @@ class _PayslipCardState extends State<_PayslipCard> {
                     children: [
                       Text(payslip.period ?? 'Payslip', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                       if (payslip.employee != null)
-                        Text(payslip.employee!, style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 13)),
+                        Text(payslip.employee!, style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13)),
                     ],
                   ),
                 ),
@@ -189,7 +189,7 @@ class _PayslipCardState extends State<_PayslipCard> {
                   decoration: BoxDecoration(
                     color: AppColors.successLight,
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.success.withOpacity(0.2)),
+                    border: Border.all(color: AppColors.success.withValues(alpha: 0.2)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,

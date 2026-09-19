@@ -219,7 +219,7 @@ class _CreateMeetingDialogState extends ConsumerState<_CreateMeetingDialog> {
               Row(
                 children: [
                   Expanded(child: DropdownButtonFormField<String>(
-                    value: _type,
+                    initialValue: _type,
                     decoration: const InputDecoration(labelText: 'Type'),
                     items: const [
                       DropdownMenuItem(value: 'team', child: Text('Team Meeting')),

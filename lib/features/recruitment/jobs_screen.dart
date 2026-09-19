@@ -233,7 +233,7 @@ class _CreateJobDialogState extends ConsumerState<_CreateJobDialog> {
                     Expanded(child: TextFormField(controller: _locationCtrl, decoration: const InputDecoration(labelText: 'Location'))),
                     const SizedBox(width: 12),
                     Expanded(child: DropdownButtonFormField<String>(
-                      value: _type,
+                      initialValue: _type,
                       decoration: const InputDecoration(labelText: 'Employment Type'),
                       items: const [
                         DropdownMenuItem(value: 'full_time', child: Text('Full Time')),

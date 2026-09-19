@@ -204,7 +204,7 @@ class _ReportCardState extends ConsumerState<_ReportCard> {
                   dataAsync.when(
                     loading: () => const SizedBox(width: 14, height: 14,
                         child: CircularProgressIndicator(strokeWidth: 2)),
-                    error: (_, __) => Icon(Icons.error_outline, color: AppColors.error, size: 18),
+                    error: (_, _) => Icon(Icons.error_outline, color: AppColors.error, size: 18),
                     data: (_) => Icon(Icons.open_in_new_rounded,
                         color: _hovered ? widget.color : AppColors.textMuted, size: 18),
                   ),

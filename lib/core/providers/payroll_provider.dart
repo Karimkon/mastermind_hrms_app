@@ -61,7 +61,7 @@ class PayrollActionsNotifier extends Notifier<AsyncValue<void>> {
       await ApiService.post(ApiConstants.payroll, data: {
         'month': month,
         'year': year,
-        if (clientId != null) 'client_id': clientId,
+        'client_id': ?clientId,
       });
       state = const AsyncData(null);
       return true;
@@ -83,10 +83,19 @@ class PayrollActionsNotifier extends Notifier<AsyncValue<void>> {
     }
   }
 
-  Future<bool> approvePayroll(int id) async {
+  /// Payroll is released by three people, not one.
+  ///
+  /// HR confirms the figures, Finance confirms the company can pay them, and the
+  /// MD releases the money. The app used to offer a single "Approve" that called
+  /// the old endpoint, which took a run straight from processed to approved and
+  /// locked it on one person's authority — the web has always required all three.
+  ///
+  /// Each stage is a separate call because each is a separate decision by a
+  /// separate role, and the server rejects them out of order.
+  Future<bool> _advance(int id, String stage) async {
     state = const AsyncLoading();
     try {
-      await ApiService.post('${ApiConstants.payroll}/$id/approve');
+      await ApiService.post('${ApiConstants.payroll}/$id/$stage');
       state = const AsyncData(null);
       return true;
     } catch (e) {
@@ -94,6 +103,16 @@ class PayrollActionsNotifier extends Notifier<AsyncValue<void>> {
       return false;
     }
   }
+
+  /// Stage 1 of 3 — HR. processed -> hr_approved.
+  Future<bool> hrApprovePayroll(int id) => _advance(id, 'hr-approve');
+
+  /// Stage 2 of 3 — Finance. hr_approved -> finance_approved.
+  Future<bool> financeApprovePayroll(int id) => _advance(id, 'finance-approve');
+
+  /// Stage 3 of 3 — MD. finance_approved -> md_approved, and this is the step
+  /// that locks the run.
+  Future<bool> mdApprovePayroll(int id) => _advance(id, 'approve');
 }
 
 final payrollActionsProvider =
