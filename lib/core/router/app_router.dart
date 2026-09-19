@@ -41,6 +41,7 @@ import '../../features/workforce/onboarding_screen.dart';
 import '../../features/workforce/pips_screen.dart';
 import '../../features/configuration/shifts_screen.dart';
 import '../../features/configuration/salary_structure_screen.dart';
+import '../../features/configuration/public_holidays_screen.dart';
 import '../../features/appraisals/appraisal_detail_screen.dart';
 import '../../features/bsc/bsc_screen.dart';
 import '../../features/bsc/bsc_my_appraisal_screen.dart';
@@ -145,6 +146,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/pips',                builder: (_, _) => const PipsScreen()),
           GoRoute(path: '/shifts',              builder: (_, _) => const ShiftsScreen()),
           GoRoute(path: '/salary-structure',    builder: (_, _) => const SalaryStructureScreen()),
+          GoRoute(path: '/public-holidays',     builder: (_, _) => const PublicHolidaysScreen()),
           GoRoute(
             path: '/appraisals/:id',
             builder: (_, st) => AppraisalDetailScreen(
