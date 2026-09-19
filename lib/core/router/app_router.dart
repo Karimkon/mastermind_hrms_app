@@ -35,6 +35,8 @@ import '../../features/am_visits/am_employees_screen.dart';
 import '../../features/am_visits/am_leaves_screen.dart';
 import '../../features/am_visits/am_payroll_screen.dart';
 import '../../features/am_visits/am_salary_payments_screen.dart';
+import '../../features/appraisals/appraisals_screen.dart';
+import '../../features/appraisals/appraisal_detail_screen.dart';
 import '../../features/bsc/bsc_screen.dart';
 import '../../features/bsc/bsc_my_appraisal_screen.dart';
 import '../../features/probation/probation_screen.dart';
@@ -130,6 +132,15 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/am-leaves',            builder: (_, _) => const AmLeavesScreen()),
           GoRoute(path: '/am-payroll',           builder: (_, _) => const AmPayrollScreen()),
           GoRoute(path: '/am-salary-payments',  builder: (_, _) => const AmSalaryPaymentsScreen()),
+          // Appraisal cards. The /bsc routes below remain reachable while the
+          // old cycles are archived, but nothing navigates to them any more.
+          GoRoute(path: '/appraisals',          builder: (_, _) => const AppraisalsScreen()),
+          GoRoute(
+            path: '/appraisals/:id',
+            builder: (_, st) => AppraisalDetailScreen(
+              appraisalId: int.tryParse(st.pathParameters['id'] ?? '') ?? 0,
+            ),
+          ),
           GoRoute(path: '/bsc',                 builder: (_, _) => const BscScreen()),
           GoRoute(path: '/bsc/my-appraisal',    builder: (_, _) => const BscMyAppraisalScreen()),
           GoRoute(path: '/probation',           builder: (_, _) => const ProbationScreen()),

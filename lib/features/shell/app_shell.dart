@@ -87,7 +87,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     items.add(_NavItem(icon: Icons.receipt_long_rounded, label: 'My Payslips', path: '/my-payslips'));
     items.add(_NavItem(icon: Icons.folder_rounded, label: 'My Documents', path: '/my-documents'));
     items.add(_NavItem(icon: Icons.school_rounded, label: 'Training', path: '/training'));
-    items.add(_NavItem(icon: Icons.balance_rounded, label: 'My Appraisal', path: '/bsc/my-appraisal'));
+    items.add(_NavItem(icon: Icons.assignment_turned_in_rounded, label: 'My Appraisal', path: '/appraisals'));
     items.add(_NavItem(icon: Icons.calendar_month_rounded, label: 'Meetings', path: '/meetings'));
     items.add(_NavItem(icon: Icons.lightbulb_rounded, label: 'Company Insights', path: '/blog'));
 
@@ -98,14 +98,14 @@ class _AppShellState extends ConsumerState<AppShell> {
       items.add(_NavItem(icon: Icons.beach_access_rounded, label: 'Leave Management', path: '/am-leaves'));
       items.add(_NavItem(icon: Icons.payments_rounded, label: 'Payroll Runs', path: '/am-payroll'));
       items.add(_NavItem(icon: Icons.money_rounded, label: 'Salary Payments', path: '/am-salary-payments'));
-      items.add(_NavItem(icon: Icons.balance_rounded, label: 'Team BSC', path: '/bsc'));
+      items.add(_NavItem(icon: Icons.assignment_rounded, label: 'Team Appraisals', path: '/appraisals'));
     }
 
     if (user.isAdmin || user.isManager) {
       items.add(_NavSectionHeader('MANAGEMENT'));
       items.add(_NavItem(icon: Icons.people_rounded, label: 'Employees', path: '/employees'));
       items.add(_NavItem(icon: Icons.bar_chart_rounded, label: 'Performance', path: '/performance'));
-      items.add(_NavItem(icon: Icons.balance_rounded, label: 'BSC Appraisals', path: '/bsc'));
+      items.add(_NavItem(icon: Icons.assignment_rounded, label: 'Appraisals', path: '/appraisals'));
       // Payroll pays only approved overtime, so this screen gates real money.
       items.add(_NavItem(
         icon: Icons.hourglass_bottom_rounded, label: 'Overtime Approval', path: '/overtime'));
@@ -341,6 +341,7 @@ class _MobileAppBar extends StatelessWidget implements PreferredSizeWidget {
       '/am-leaves': 'Leave Management',
       '/am-payroll': 'Payroll Runs',
       '/am-salary-payments': 'Salary Payments',
+      '/appraisals': 'Appraisals',
       '/bsc/my-appraisal': 'My Appraisal',
       '/bsc': 'BSC Appraisals',
       '/probation': 'Probation Tracking',
@@ -713,7 +714,7 @@ class _TopBar extends StatelessWidget {
   }
 
   String _titleFor(String location) {
-    const titles = {'/dashboard': 'Dashboard', '/attendance': 'Attendance', '/leaves': 'Leave Management', '/my-payslips': 'My Payslips', '/my-documents': 'My Documents', '/payroll': 'Payroll', '/employees/': 'Employee Details', '/employees': 'Employees', '/recruitment/jobs': 'Jobs', '/recruitment/candidates': 'Candidates', '/recruitment/interviews': 'Interviews', '/performance': 'Performance', '/training': 'Training', '/meetings': 'Meetings', '/reports': 'Reports', '/profile': 'My Profile', '/admin/users': 'Users', '/admin/departments': 'Departments', '/admin/clients': 'Clients', '/admin/audit': 'Audit Logs', '/client/dashboard': 'Client Dashboard', '/client/leaves': 'Leave Approvals', '/client/recruitment': 'Recruitment Approvals', '/am-visits': 'Site Visits', '/bsc/my-appraisal': 'My BSC Appraisal', '/bsc': 'BSC Appraisals', '/probation': 'Probation Tracking'};
+    const titles = {'/dashboard': 'Dashboard', '/attendance': 'Attendance', '/leaves': 'Leave Management', '/my-payslips': 'My Payslips', '/my-documents': 'My Documents', '/payroll': 'Payroll', '/employees/': 'Employee Details', '/employees': 'Employees', '/recruitment/jobs': 'Jobs', '/recruitment/candidates': 'Candidates', '/recruitment/interviews': 'Interviews', '/performance': 'Performance', '/training': 'Training', '/meetings': 'Meetings', '/reports': 'Reports', '/profile': 'My Profile', '/admin/users': 'Users', '/admin/departments': 'Departments', '/admin/clients': 'Clients', '/admin/audit': 'Audit Logs', '/client/dashboard': 'Client Dashboard', '/client/leaves': 'Leave Approvals', '/client/recruitment': 'Recruitment Approvals', '/am-visits': 'Site Visits', '/appraisals': 'Appraisals', '/bsc/my-appraisal': 'My BSC Appraisal', '/bsc': 'BSC Appraisals', '/probation': 'Probation Tracking'};
     for (final e in titles.entries) { if (location.startsWith(e.key)) return e.value; }
     return 'Mastermind HRMS';
   }
