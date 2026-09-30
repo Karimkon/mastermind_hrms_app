@@ -58,12 +58,58 @@ class ApiException implements Exception {
 
   ApiException(this.message, {this.statusCode});
 
+  /// The sentence to put in front of somebody.
+  ///
+  /// This used to fall back to `e.message`, which for a bad response is Dio's
+  /// own essay — "this exception was thrown because RequestOptions.validateStatus
+  /// was configured to throw for this status code… read more about status codes
+  /// at developer.mozilla.org". Somebody mistyping their password was shown all
+  /// of it. The server already says what went wrong; when it does not, the
+  /// status and the failure type do.
   factory ApiException.fromDio(DioException e) {
+    final status = e.response?.statusCode;
     final data = e.response?.data;
-    final message = (data is Map ? data['message'] : null) ??
-        e.message ??
-        'An error occurred';
-    return ApiException(message, statusCode: e.response?.statusCode);
+
+    // What the server itself said, which is nearly always the right answer.
+    if (data is Map) {
+      final said = data['message'];
+      if (said is String && said.trim().isNotEmpty) {
+        return ApiException(said.trim(), statusCode: status);
+      }
+
+      // A 422 carries its detail in `errors` rather than `message`.
+      final errors = data['errors'];
+      if (errors is Map && errors.isNotEmpty) {
+        final first = errors.values.first;
+        if (first is List && first.isNotEmpty) {
+          return ApiException(first.first.toString(), statusCode: status);
+        }
+      }
+    }
+
+    final message = switch (e.type) {
+      DioExceptionType.connectionTimeout ||
+      DioExceptionType.sendTimeout ||
+      DioExceptionType.receiveTimeout =>
+        'The server took too long to answer. Check your connection and try again.',
+      DioExceptionType.connectionError =>
+        'Could not reach the server. Check your internet connection.',
+      DioExceptionType.cancel => 'That request was cancelled.',
+      DioExceptionType.badCertificate =>
+        'The server\'s security certificate could not be trusted.',
+      _ => switch (status) {
+          401 => 'Your email or password is not correct.',
+          403 => 'You do not have permission to do that.',
+          404 => 'That could not be found.',
+          419 => 'Your session has expired. Please sign in again.',
+          422 => 'Some of what you entered was not accepted.',
+          429 => 'Too many attempts. Wait a moment and try again.',
+          >= 500 => 'Something went wrong on the server. Please try again.',
+          _ => 'Something went wrong. Please try again.',
+        },
+    };
+
+    return ApiException(message, statusCode: status);
   }
 
   @override

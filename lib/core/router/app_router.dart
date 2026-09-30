@@ -6,6 +6,8 @@ import '../../features/auth/login_screen.dart';
 import '../../features/auth/mfa_screen.dart';
 import '../../features/shell/app_shell.dart';
 import '../../features/dashboard/dashboard_screen.dart';
+import '../../features/chat/chat_list_screen.dart';
+import '../../features/chat/chat_thread_screen.dart';
 import '../../features/profile/profile_screen.dart';
 import '../../features/employees/employees_screen.dart';
 import '../../features/employees/employee_detail_screen.dart';
@@ -46,6 +48,8 @@ import '../../features/appraisals/appraisal_detail_screen.dart';
 import '../../features/bsc/bsc_screen.dart';
 import '../../features/bsc/bsc_my_appraisal_screen.dart';
 import '../../features/probation/probation_screen.dart';
+import '../../features/performance/goals_screen.dart';
+import '../../features/admin/change_approvals_screen.dart';
 import '../../features/blog/screens/blog_screen.dart';
 import '../../features/blog/screens/blog_detail_screen.dart';
 
@@ -129,6 +133,16 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/client/leaves', builder: (_, _) => const ClientLeavesScreen()),
           GoRoute(path: '/client/recruitment', builder: (_, _) => const ClientRecruitmentScreen()),
           GoRoute(path: '/my-documents',       builder: (_, _) => const DocumentsScreen()),
+          // Staff messaging. The thread takes its id from the path so a
+          // notification can open straight onto the right conversation.
+          GoRoute(path: '/chat',               builder: (_, _) => const ChatListScreen()),
+          GoRoute(
+            path: '/chat/:id',
+            builder: (_, st) => ChatThreadScreen(
+              conversationId: int.tryParse(st.pathParameters['id'] ?? '') ?? 0,
+              title: st.uri.queryParameters['title'],
+            ),
+          ),
           GoRoute(path: '/am-visits',            builder: (_, _) => const AmVisitsScreen()),
           // Office presence register — separate stream from site visits above,
           // and from /attendance which is the payroll-affecting one.
@@ -156,6 +170,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/bsc',                 builder: (_, _) => const BscScreen()),
           GoRoute(path: '/bsc/my-appraisal',    builder: (_, _) => const BscMyAppraisalScreen()),
           GoRoute(path: '/probation',           builder: (_, _) => const ProbationScreen()),
+          GoRoute(path: '/goals',               builder: (_, _) => const GoalsScreen()),
+          GoRoute(path: '/change-approvals',    builder: (_, _) => const ChangeApprovalsScreen()),
         ],
       ),
     ],

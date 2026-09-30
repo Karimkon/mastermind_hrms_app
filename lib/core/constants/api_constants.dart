@@ -56,6 +56,11 @@ class ApiConstants {
   static const String meetings = '/meetings';
   static const String calendar = '/calendar';
 
+  // Staff messaging
+  static const String chat = '/chat';
+  static const String chatUnread = '/chat/unread';
+  static const String chatContacts = '/chat/contacts';
+
   // Notifications
   static const String notifications = '/notifications';
   static const String notificationsRead = '/notifications/read';
@@ -120,6 +125,14 @@ class ApiConstants {
 
   // Probation
   static const String probation = '/probation';
+
+  // Change approvals — HR's queue of edits account managers have proposed
+  static const String changeApprovals = '/change-approvals';
+  static String changeApproval(int id) => '/change-approvals/$id';
+  static String changeApprovalApprove(int id) => '/change-approvals/$id/approve';
+  static String changeApprovalReject(int id) => '/change-approvals/$id/reject';
+
+  static String goal(int id) => '/goals/$id';
 
   // Company insights (public blog feed - no auth required)
   static const String blogArticles = '/blog/articles';

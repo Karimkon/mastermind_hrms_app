@@ -70,8 +70,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await _saveSession(body);
       return null;
     } on DioException catch (e) {
-      state = state.copyWith(isLoading: false, error: ApiException.fromDio(e).message);
-      rethrow;
+      // Rethrowing the DioException handed the screen an object whose
+      // toString() is the whole "this exception was thrown because
+      // RequestOptions.validateStatus was configured to throw..." essay,
+      // and that is what somebody mistyping their password was shown.
+      // ApiException carries the server's own sentence and nothing else.
+      final failure = ApiException.fromDio(e);
+      state = state.copyWith(isLoading: false, error: failure.message);
+      throw failure;
     }
   }
 
@@ -84,8 +90,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
       });
       await _saveSession(res.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      state = state.copyWith(isLoading: false, error: ApiException.fromDio(e).message);
-      rethrow;
+      // Rethrowing the DioException handed the screen an object whose
+      // toString() is the whole "this exception was thrown because
+      // RequestOptions.validateStatus was configured to throw..." essay,
+      // and that is what somebody mistyping their password was shown.
+      // ApiException carries the server's own sentence and nothing else.
+      final failure = ApiException.fromDio(e);
+      state = state.copyWith(isLoading: false, error: failure.message);
+      throw failure;
     }
   }
 

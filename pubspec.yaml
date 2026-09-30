@@ -1,7 +1,7 @@
 name: mastermind_hrms_app
 description: "Mastermind Consult Ltd HRMS — mobile and desktop app"
 publish_to: 'none'
-version: 1.4.0+18
+version: 1.4.0+19
 
 environment:
   sdk: ^3.10.4
@@ -61,6 +61,13 @@ dependencies:
   # dialogs), and without the package those render as missing glyphs.
   cupertino_icons: ^1.0.8
 
+  # Voice notes: recording them, and playing them back inline the way a
+  # chat is expected to. Video and documents are handed to the system
+  # player through open_filex instead, which is already here.
+  record: ^5.1.2
+  audioplayers: ^6.1.0
+  path_provider: ^2.1.4
+
   # Misc
   equatable: ^2.0.5
 
@@ -88,3 +95,11 @@ flutter:
 
   assets:
     - assets/images/
+
+# Pin the record plugin's platform interface: record_linux 0.7.2 (latest) does not
+# implement interface 1.6.0's new members (startStream, hasPermission{request}), which
+# breaks release AOT compilation. 1.5.0 predates them and satisfies every record_* package.
+dependency_overrides:
+  # record 5.2.1 pins record_linux <1.0.0 (0.7.2), which does not implement
+  # interface 1.6.0 and breaks release AOT. 1.3.1 implements it; not used on Android.
+  record_linux: 1.3.1

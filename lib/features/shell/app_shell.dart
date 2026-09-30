@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,8 +16,39 @@ class AppShell extends ConsumerStatefulWidget {
   ConsumerState<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends ConsumerState<AppShell> {
+class _AppShellState extends ConsumerState<AppShell> with WidgetsBindingObserver {
   bool _sidebarCollapsed = false;
+  Timer? _notificationPoll;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    // Nothing refreshed these before: the counts were fetched once when the
+    // provider built and then sat there, so a payslip or an improvement plan
+    // landing while the app was open went unseen until a restart. Slower than
+    // the web's 30s — this is somebody's phone battery and data bundle.
+    _notificationPoll = Timer.periodic(const Duration(seconds: 60), (_) {
+      ref.read(notificationsProvider.notifier).refreshSilently();
+    });
+  }
+
+  @override
+  void dispose() {
+    _notificationPoll?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Coming back to the app is the moment somebody looks at the badges, and
+    // the timer does not run while it is in the background.
+    if (state == AppLifecycleState.resumed) {
+      ref.read(notificationsProvider.notifier).refreshSilently();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +101,7 @@ class _AppShellState extends ConsumerState<AppShell> {
   List<dynamic> _buildNavItems(UserModel user) {
     final items = <dynamic>[];
     items.add(_NavItem(icon: Icons.dashboard_rounded, label: 'Dashboard', path: '/dashboard'));
+    items.add(_NavItem(icon: Icons.forum_rounded, label: 'Messages', path: '/chat'));
 
     if (user.isClient) {
       items.add(_NavItem(icon: Icons.task_alt_rounded, label: 'Leave Approvals', path: '/client/leaves'));
@@ -83,31 +117,42 @@ class _AppShellState extends ConsumerState<AppShell> {
       items.add(_NavItem(
         icon: Icons.business_rounded, label: 'Office Attendance', path: '/office-attendance'));
     }
-    items.add(_NavItem(icon: Icons.beach_access_rounded, label: 'My Leave', path: '/leaves'));
-    items.add(_NavItem(icon: Icons.receipt_long_rounded, label: 'My Payslips', path: '/my-payslips'));
-    items.add(_NavItem(icon: Icons.folder_rounded, label: 'My Documents', path: '/my-documents'));
-    items.add(_NavItem(icon: Icons.school_rounded, label: 'Training', path: '/training'));
-    items.add(_NavItem(icon: Icons.assignment_turned_in_rounded, label: 'My Appraisal', path: '/appraisals'));
+    items.add(_NavItem(icon: Icons.beach_access_rounded, label: 'My Leave', path: '/leaves', area: 'leave'));
+    items.add(_NavItem(icon: Icons.receipt_long_rounded, label: 'My Payslips', path: '/my-payslips', area: 'payslips'));
+    items.add(_NavItem(icon: Icons.folder_rounded, label: 'My Documents', path: '/my-documents', area: 'documents'));
+    items.add(_NavItem(icon: Icons.school_rounded, label: 'Training', path: '/training', area: 'training'));
+    items.add(_NavItem(icon: Icons.assignment_turned_in_rounded, label: 'My Appraisal', path: '/appraisals', area: 'appraisals'));
     items.add(_NavItem(icon: Icons.checklist_rtl_rounded, label: 'My Onboarding', path: '/onboarding'));
-    items.add(_NavItem(icon: Icons.trending_up_rounded, label: 'Improvement Plans', path: '/pips'));
-    items.add(_NavItem(icon: Icons.calendar_month_rounded, label: 'Meetings', path: '/meetings'));
+    items.add(_NavItem(icon: Icons.flag_rounded, label: 'My Goals', path: '/goals', area: 'goals'));
+    items.add(_NavItem(icon: Icons.trending_up_rounded, label: 'Improvement Plans', path: '/pips', area: 'pips'));
+    items.add(_NavItem(icon: Icons.calendar_month_rounded, label: 'Meetings', path: '/meetings', area: 'calendar'));
     items.add(_NavItem(icon: Icons.lightbulb_rounded, label: 'Company Insights', path: '/blog'));
 
     if (user.isAccountManager) {
       items.add(_NavSectionHeader('AM TOOLS'));
       items.add(_NavItem(icon: Icons.location_on_rounded, label: 'Site Visits', path: '/am-visits'));
       items.add(_NavItem(icon: Icons.people_rounded, label: 'Employees', path: '/am-employees'));
-      items.add(_NavItem(icon: Icons.beach_access_rounded, label: 'Leave Management', path: '/am-leaves'));
+      items.add(_NavItem(icon: Icons.beach_access_rounded, label: 'Leave Management', path: '/am-leaves', area: 'leave'));
       items.add(_NavItem(icon: Icons.payments_rounded, label: 'Payroll Runs', path: '/am-payroll'));
       items.add(_NavItem(icon: Icons.money_rounded, label: 'Salary Payments', path: '/am-salary-payments'));
-      items.add(_NavItem(icon: Icons.assignment_rounded, label: 'Team Appraisals', path: '/appraisals'));
+      items.add(_NavItem(icon: Icons.assignment_rounded, label: 'Team Appraisals', path: '/appraisals', area: 'appraisals'));
     }
 
     if (user.isAdmin || user.isManager) {
       items.add(_NavSectionHeader('MANAGEMENT'));
       items.add(_NavItem(icon: Icons.people_rounded, label: 'Employees', path: '/employees'));
+      // HR's queue of edits account managers have proposed. The endpoint
+      // is super-admin/hr-admin only, so a manager would only get a 403.
+      if (user.isAdmin) {
+        items.add(_NavItem(
+          icon: Icons.fact_check_rounded,
+          label: 'Change Approvals',
+          path: '/change-approvals',
+          area: 'change_approvals',
+        ));
+      }
       items.add(_NavItem(icon: Icons.bar_chart_rounded, label: 'Performance', path: '/performance'));
-      items.add(_NavItem(icon: Icons.assignment_rounded, label: 'Appraisals', path: '/appraisals'));
+      items.add(_NavItem(icon: Icons.assignment_rounded, label: 'Appraisals', path: '/appraisals', area: 'appraisals'));
       items.add(_NavItem(icon: Icons.event_available_rounded, label: 'Holiday Pay', path: '/holiday-pay'));
       items.add(_NavItem(icon: Icons.schedule_rounded, label: 'Shifts', path: '/shifts'));
       items.add(_NavItem(icon: Icons.tune_rounded, label: 'Salary Structure', path: '/salary-structure'));
@@ -116,13 +161,13 @@ class _AppShellState extends ConsumerState<AppShell> {
       items.add(_NavItem(
         icon: Icons.hourglass_bottom_rounded, label: 'Overtime Approval', path: '/overtime'));
       if (user.canSeeProbation) {
-        items.add(_NavItem(icon: Icons.person_search_rounded, label: 'Probation', path: '/probation'));
+        items.add(_NavItem(icon: Icons.person_search_rounded, label: 'Probation', path: '/probation', area: 'probation'));
       }
     }
 
     if (user.isAdmin || user.isPayroll) {
       items.add(_NavSectionHeader('PAYROLL'));
-      items.add(_NavItem(icon: Icons.payments_rounded, label: 'Payroll Runs', path: '/payroll'));
+      items.add(_NavItem(icon: Icons.payments_rounded, label: 'Payroll Runs', path: '/payroll', area: 'payroll'));
     }
 
     if (user.isAdmin || user.isRecruiter) {
@@ -375,6 +420,9 @@ class _MobileDrawer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final location = GoRouterState.of(context).matchedLocation;
     final initials = user.name.split(' ').take(2).map((w) => w.isNotEmpty ? w[0] : '').join().toUpperCase();
+    final notifications = ref.watch(notificationsProvider).valueOrNull ??
+        const NotificationsData(items: [], unreadCount: 0);
+
 
     return Drawer(
       backgroundColor: AppColors.sidebarBg,
@@ -427,15 +475,22 @@ class _MobileDrawer extends ConsumerWidget {
                 }
                 if (item is _NavItem) {
                   final isActive = location == item.path || location.startsWith('${item.path}/');
+                  final unread = notifications.countFor(item.area);
                   return ListTile(
                     dense: true,
                     leading: Icon(item.icon, color: isActive ? Colors.white : AppColors.sidebarText, size: 20),
                     title: Text(item.label, style: TextStyle(color: isActive ? Colors.white : AppColors.sidebarText, fontWeight: isActive ? FontWeight.w700 : FontWeight.w400, fontSize: 14)),
+                    trailing: _NavBadge(count: unread),
                     tileColor: isActive ? AppColors.sidebarActive : null,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     horizontalTitleGap: 8,
                     onTap: () {
                       Navigator.pop(context);
+                      // Opening the screen settles its notices, the same rule
+                      // the web applies on navigation.
+                      if (item.area != null && unread > 0) {
+                        ref.read(notificationsProvider.notifier).markAreaRead(item.area!);
+                      }
                       context.go(item.path);
                     },
                   );
@@ -497,6 +552,8 @@ class _Sidebar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final location = GoRouterState.of(context).matchedLocation;
+    final notifications = ref.watch(notificationsProvider).valueOrNull ??
+        const NotificationsData(items: [], unreadCount: 0);
     return Container(
       color: AppColors.sidebarBg,
       child: Column(
@@ -544,7 +601,19 @@ class _Sidebar extends ConsumerWidget {
                 }
                 if (item is _NavItem) {
                   final isActive = location == item.path || location.startsWith('${item.path}/');
-                  return _SidebarTile(item: item, isActive: isActive, collapsed: collapsed, onTap: () => context.go(item.path));
+                  final unread = notifications.countFor(item.area);
+                  return _SidebarTile(
+                    item: item,
+                    isActive: isActive,
+                    collapsed: collapsed,
+                    unread: unread,
+                    onTap: () {
+                      if (item.area != null && unread > 0) {
+                        ref.read(notificationsProvider.notifier).markAreaRead(item.area!);
+                      }
+                      context.go(item.path);
+                    },
+                  );
                 }
                 return const SizedBox.shrink();
               }).toList(),
@@ -562,8 +631,9 @@ class _SidebarTile extends StatefulWidget {
   final _NavItem item;
   final bool isActive;
   final bool collapsed;
+  final int unread;
   final VoidCallback onTap;
-  const _SidebarTile({required this.item, required this.isActive, required this.collapsed, required this.onTap});
+  const _SidebarTile({required this.item, required this.isActive, required this.collapsed, required this.onTap, this.unread = 0});
 
   @override
   State<_SidebarTile> createState() => _SidebarTileState();
@@ -591,11 +661,34 @@ class _SidebarTileState extends State<_SidebarTile> {
             padding: EdgeInsets.symmetric(horizontal: widget.collapsed ? 0 : 12, vertical: 10),
             decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
             child: widget.collapsed
-                ? Center(child: Icon(widget.item.icon, color: widget.isActive ? Colors.white : AppColors.sidebarText, size: 20))
+                // Collapsed to icons only: the count would not fit as a number,
+                // so it becomes a dot in the corner that something is waiting.
+                ? Center(
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Icon(widget.item.icon, color: widget.isActive ? Colors.white : AppColors.sidebarText, size: 20),
+                        if (widget.unread > 0)
+                          Positioned(
+                            right: -3,
+                            top: -2,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFEF4444),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  )
                 : Row(children: [
                     Icon(widget.item.icon, color: widget.isActive ? Colors.white : AppColors.sidebarText, size: 18),
                     const SizedBox(width: 10),
                     Expanded(child: Text(widget.item.label, style: TextStyle(color: widget.isActive ? Colors.white : AppColors.sidebarText, fontSize: 13.5, fontWeight: widget.isActive ? FontWeight.w600 : FontWeight.w400))),
+                    _NavBadge(count: widget.unread, dense: true),
                   ]),
           ),
         ),
@@ -806,7 +899,53 @@ class _NavItem {
   final IconData icon;
   final String label;
   final String path;
-  const _NavItem({required this.icon, required this.label, required this.path});
+
+  /// Which notification area this item owns, matching the server's map —
+  /// 'pips', 'payslips', 'leave', 'calendar', 'training', 'appraisals',
+  /// 'documents', 'payroll'. Null means nothing is ever counted against it.
+  final String? area;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.path,
+    this.area,
+  });
+}
+
+/// The unread count on a menu item.
+///
+/// The bell says a number and not where it is, so the same count also sits on
+/// the item the notice belongs to. Renders nothing at zero rather than an
+/// empty circle.
+class _NavBadge extends StatelessWidget {
+  final int count;
+  final bool dense;
+  const _NavBadge({required this.count, this.dense = false});
+
+  @override
+  Widget build(BuildContext context) {
+    if (count <= 0) return const SizedBox.shrink();
+
+    return Container(
+      constraints: BoxConstraints(minWidth: dense ? 16 : 18),
+      padding: EdgeInsets.symmetric(horizontal: dense ? 5 : 6, vertical: dense ? 1 : 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEF4444),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        count > 99 ? '99+' : '$count',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: dense ? 10 : 11,
+          fontWeight: FontWeight.w700,
+          height: 1.2,
+        ),
+      ),
+    );
+  }
 }
 
 class _NavSectionHeader {

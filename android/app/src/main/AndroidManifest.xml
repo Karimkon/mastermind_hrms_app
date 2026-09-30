@@ -6,6 +6,9 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
 
+    <!-- Voice notes in staff messaging. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
     <!--
         open_filex declares read access to every media type so that it can hand a
         file to whatever app opens it. This one only ever opens payslip PDFs, so

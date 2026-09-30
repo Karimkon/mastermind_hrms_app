@@ -51,7 +51,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
       }
       // If null → router redirect handles navigation to /dashboard
     } catch (e) {
-      setState(() => _error = e.toString());
+      // ApiException.toString() is already the sentence to show. The strip is
+      // for anything else that reaches here wrapped in "Exception: ".
+      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
