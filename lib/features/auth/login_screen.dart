@@ -74,7 +74,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Logo header
-                    Image.asset('assets/images/logo.jpg', height: 56, fit: BoxFit.contain),
+                    Image.asset('assets/images/logo.png', height: 52, fit: BoxFit.contain),
                     const SizedBox(height: 32),
                     const Text('Welcome back', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
                     const SizedBox(height: 4),
@@ -183,32 +183,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Logo
-                      Row(
+                      // The real wordmark rather than a generic "M" tile. Half
+                      // of it is black, so on this gradient it sits on white —
+                      // the same chip the web sidebar uses.
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Container(
-                            width: 48,
-                            height: 48,
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                             decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [AppColors.primary, AppColors.primaryLight],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                              borderRadius: BorderRadius.circular(14),
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Center(
-                              child: Text('M', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24)),
-                            ),
+                            child: Image.asset('assets/images/logo.png', height: 34, fit: BoxFit.contain),
                           ),
-                          const SizedBox(width: 14),
-                          const Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Mastermind', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
-                              Text('HRMS v2.0', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-                            ],
-                          ),
+                          const SizedBox(height: 10),
+                          const Text('HRMS v2.0', style: TextStyle(color: Color(0xFF64748B), fontSize: 13)),
                         ],
                       ),
                       const Spacer(),

@@ -329,7 +329,7 @@ class _MobileAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       title: Row(
         children: [
-          Image.asset('assets/images/logo.jpg', height: 28, fit: BoxFit.contain),
+          Image.asset('assets/images/logo.png', height: 24, fit: BoxFit.contain),
           const SizedBox(width: 8),
           Text(_titleFor(location), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
         ],
@@ -435,7 +435,16 @@ class _MobileDrawer extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Image.asset('assets/images/logo.jpg', height: 44, fit: BoxFit.contain, alignment: Alignment.centerLeft),
+                  // The wordmark is half black, so on the navy drawer it needs
+                  // a white ground under it — the same chip the web uses.
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Image.asset('assets/images/logo.png', height: 30, fit: BoxFit.contain),
+                  ),
                   const SizedBox(height: 20),
                   Row(
                     children: [
@@ -567,12 +576,28 @@ class _Sidebar extends ConsumerWidget {
                 if (collapsed)
                   Expanded(
                     child: Center(
-                      child: Image.asset('assets/images/logo.jpg', height: 36, fit: BoxFit.contain),
+                      // A 3:1 wordmark at height 36 is 110px wide and the rail
+                      // is 68px, so it has to be bounded by width, not height.
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Image.asset('assets/images/logo.png', width: 38, fit: BoxFit.contain),
+                      ),
                     ),
                   )
                 else ...[
                   Expanded(
-                    child: Image.asset('assets/images/logo.jpg', height: 40, fit: BoxFit.contain, alignment: Alignment.centerLeft),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Image.asset('assets/images/logo.png', height: 26, fit: BoxFit.contain),
+                    ),
                   ),
                   GestureDetector(
                     onTap: onToggle,

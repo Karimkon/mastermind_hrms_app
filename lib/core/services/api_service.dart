@@ -97,7 +97,8 @@ class ApiException implements Exception {
       DioExceptionType.cancel => 'That request was cancelled.',
       DioExceptionType.badCertificate =>
         'The server\'s security certificate could not be trusted.',
-      _ => switch (status) {
+      // `status` is nullable, and a range pattern needs something to compare.
+      _ => switch (status ?? 0) {
           401 => 'Your email or password is not correct.',
           403 => 'You do not have permission to do that.',
           404 => 'That could not be found.',
