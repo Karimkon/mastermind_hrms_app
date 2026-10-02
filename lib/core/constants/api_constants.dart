@@ -1,5 +1,9 @@
 class ApiConstants {
-  static const String baseUrl = 'https://mastermind.autos/api';
+  static const String baseUrl = 'https://mastermindconsults.co.ug/api';
+
+  /// The site root (no /api), for links to web-only pages such as the
+  /// bank-export download. Derived from baseUrl so it can never drift.
+  static const String webRoot = 'https://mastermindconsults.co.ug';
 
   // Auth
   static const String login = '/auth/login';

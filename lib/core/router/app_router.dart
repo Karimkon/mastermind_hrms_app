@@ -52,6 +52,15 @@ import '../../features/performance/goals_screen.dart';
 import '../../features/admin/change_approvals_screen.dart';
 import '../../features/blog/screens/blog_screen.dart';
 import '../../features/blog/screens/blog_detail_screen.dart';
+import '../../features/careers/careers_home_screen.dart';
+import '../../features/careers/careers_job_screen.dart';
+import '../../features/careers/careers_register_screen.dart';
+import '../../features/careers/careers_sign_in_screen.dart';
+import '../../features/careers/careers_applications_screen.dart';
+import '../../features/careers/careers_application_screen.dart';
+import '../../features/careers/careers_track_screen.dart';
+import '../../features/careers/careers_account_screen.dart';
+import '../../features/careers/careers_notifications_screen.dart';
 
 // A ChangeNotifier that fires whenever auth state changes.
 // GoRouter uses this via refreshListenable to re-evaluate redirects.
@@ -76,20 +85,59 @@ final routerProvider = Provider<GoRouter>((ref) {
   final refreshListenable = ref.read(_authRefreshProvider);
 
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: '/careers',
     refreshListenable: refreshListenable,
     redirect: (context, state) {
       // Use ref.read (not watch) — we only need the current value here.
       final loggedIn = ref.read(authProvider).isAuthenticated;
-      final onAuth = state.matchedLocation.startsWith('/login') ||
-          state.matchedLocation.startsWith('/mfa');
+      final path = state.matchedLocation;
 
-      if (!loggedIn && !onAuth) return '/login';
+      final onAuth = path.startsWith('/login') || path.startsWith('/mfa');
+
+      // The careers side is for people outside the company. It has its own
+      // account system on its own guard, so the employee session has no say
+      // over it, and a stranger is never bounced to a staff login they could
+      // not use. This is what the app opens on.
+      //
+      // The one exception is the landing page itself: a member of staff who
+      // has already signed in and is reopening the app wants their dashboard,
+      // not the job board. Deeper careers pages stay open to everybody, so a
+      // link out of an email still lands where it should.
+      if (path == '/careers') return loggedIn ? '/dashboard' : null;
+      if (path.startsWith('/careers/')) return null;
+
+      if (!loggedIn && !onAuth) return '/careers';
       if (loggedIn && onAuth) return '/dashboard';
       return null;
     },
     routes: [
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
+      // ---- careers: the public side of the app ----
+      GoRoute(path: '/careers', builder: (_, _) => const CareersHomeScreen()),
+      GoRoute(
+        path: '/careers/jobs/:id',
+        builder: (_, state) => CareersJobScreen(
+          jobId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+        ),
+      ),
+      GoRoute(path: '/careers/register', builder: (_, _) => const CareersRegisterScreen()),
+      GoRoute(path: '/careers/sign-in', builder: (_, _) => const CareersSignInScreen()),
+      GoRoute(path: '/careers/applications', builder: (_, _) => const CareersApplicationsScreen()),
+      GoRoute(
+        path: '/careers/applications/:id',
+        builder: (_, state) => CareersApplicationScreen(
+          applicationId: int.tryParse(state.pathParameters['id'] ?? ''),
+        ),
+      ),
+      GoRoute(path: '/careers/track', builder: (_, _) => const CareersTrackScreen()),
+      GoRoute(
+        path: '/careers/track/:code',
+        builder: (_, state) => CareersApplicationScreen(
+          trackingCode: state.pathParameters['code'],
+        ),
+      ),
+      GoRoute(path: '/careers/account', builder: (_, _) => const CareersAccountScreen()),
+      GoRoute(path: '/careers/notifications', builder: (_, _) => const CareersNotificationsScreen()),
       GoRoute(
         path: '/mfa',
         builder: (_, state) => MfaScreen(mfaToken: state.extra as String? ?? ''),

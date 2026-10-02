@@ -1,7 +1,7 @@
 name: mastermind_hrms_app
 description: "Mastermind Consult Ltd HRMS — mobile and desktop app"
 publish_to: 'none'
-version: 1.5.0+19
+version: 1.5.0+22
 
 environment:
   sdk: ^3.10.4

@@ -140,7 +140,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                             : const Text('Sign In', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                       ),
                     ),
-
+                    const SizedBox(height: 6),
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: _loading ? null : () => context.go('/careers'),
+                        icon: const Icon(Icons.work_outline, size: 17),
+                        label: const Text('Looking for a job? Browse vacancies'),
+                        style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -351,7 +359,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                                 : const Text('Sign In', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                           ),
                         ),
-
+                        const SizedBox(height: 6),
+                        Center(
+                          child: TextButton.icon(
+                            onPressed: _loading ? null : () => context.go('/careers'),
+                            icon: const Icon(Icons.work_outline, size: 17),
+                            label: const Text('Looking for a job? Browse vacancies'),
+                            style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
+                          ),
+                        ),
                       ],
                     ),
                   ),

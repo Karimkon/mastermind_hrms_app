@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../core/constants/api_constants.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/payroll_provider.dart';
 
@@ -306,7 +307,7 @@ class _PayrollRunCard extends StatelessWidget {
                 style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
             const SizedBox(height: 4),
             SelectableText(
-              'https://mastermind.autos/payroll/${run['id']}/bank-export',
+              '${ApiConstants.webRoot}/payroll/${run['id']}/bank-export',
               style: const TextStyle(fontSize: 11, color: AppColors.primary, decoration: TextDecoration.underline),
             ),
           ],
