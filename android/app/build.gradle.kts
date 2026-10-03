@@ -14,6 +14,31 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+// The Android API floor, declared here rather than inherited.
+//
+// Upgrading Flutter moved flutter.minSdkVersion from 21 to 24, and the next
+// bundle stopped supporting 22,228 device models Play had been serving - every
+// Android 5.0, 5.1 and 6.0 handset. Nobody chose that; it arrived with a tool
+// upgrade, and plenty of client-site staff are on those phones.
+//
+// It cannot be undone, and the reasons are worth writing down so nobody spends
+// another afternoon on it:
+//
+//   Flutter 3.38.5        errors below 23, warns below 24
+//   record_android 1.5.2  minSdk 23      (voice notes in staff chat)
+//   shared_preferences    minSdk 24      (hardcoded in 2.4.23 - auth token store)
+//   flutter_local_notif.  minSdk 24      (hardcoded in 22.3.0)
+//
+// So Android 5.0 and 5.1 are gone whatever we do - Flutter will not build for
+// them. Android 6.0 alone could be bought back, and only by downgrading
+// shared_preferences and flutter_local_notifications, which hold the auth token
+// and the notification pipeline. That is not a trade worth making for one OS
+// version that Google stopped patching in 2018.
+//
+// Pinned rather than left as flutter.minSdkVersion so the next Flutter upgrade
+// cannot move it again without somebody editing this line and reading this.
+val androidMinSdk = 24
+
 android {
     namespace = "com.mastermind.consultants.hrms"
     compileSdk = flutter.compileSdkVersion
@@ -39,7 +64,7 @@ android {
 
     defaultConfig {
         applicationId = "com.mastermind.consultants.hrms"
-        minSdk = flutter.minSdkVersion
+        minSdk = androidMinSdk
         targetSdk     = flutter.targetSdkVersion
         // Taken from pubspec.yaml's `version:` rather than written here.
         //
