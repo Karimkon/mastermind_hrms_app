@@ -1,7 +1,7 @@
 name: mastermind_hrms_app
 description: "Mastermind Consult Ltd HRMS — mobile and desktop app"
 publish_to: 'none'
-version: 1.5.1+23
+version: 1.5.2+24
 environment:
   sdk: ^3.10.4
 
@@ -36,6 +36,10 @@ dependencies:
 
   # File picker
   file_picker: ^8.1.0
+  # Camera and gallery for profile photos. file_picker only browses files,
+  # so "take a photo" was impossible in the app; image_picker also downscales
+  # on the device, which keeps a 48MP photo off the wire entirely.
+  image_picker: ^1.1.2
 
   # Geolocation (for geo-fence attendance)
   geolocator: ^13.0.0

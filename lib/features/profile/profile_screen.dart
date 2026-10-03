@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
@@ -84,7 +85,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 bottom: 0,
                 right: 0,
                 child: GestureDetector(
-                  onTap: _uploadingAvatar ? null : _pickAndUploadAvatar,
+                  onTap: _uploadingAvatar ? null : _chooseAvatarSource,
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
@@ -236,35 +237,121 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Future<void> _pickAndUploadAvatar() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-      allowMultiple: false,
+  /// Camera or gallery, because the app only ever offered a file browser.
+  ///
+  /// Staff were asked to "take a photo" by a control that could only open the
+  /// file manager — on a phone that is the wrong tool twice over, since the
+  /// picture they want has usually not been taken yet.
+  Future<void> _chooseAvatarSource() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (sheet) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: Text('Profile photo',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt_rounded, color: AppColors.primary),
+              title: const Text('Take a photo'),
+              onTap: () => Navigator.pop(sheet, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_rounded, color: AppColors.primary),
+              title: const Text('Choose from gallery'),
+              onTap: () => Navigator.pop(sheet, ImageSource.gallery),
+            ),
+            ListTile(
+              leading: const Icon(Icons.close_rounded),
+              title: const Text('Cancel'),
+              onTap: () => Navigator.pop(sheet),
+            ),
+          ],
+        ),
+      ),
     );
-    if (result == null || result.files.isEmpty) return;
-    final file = result.files.first;
-    if (file.path == null) return;
+
+    if (source != null) {
+      await _pickAndUploadAvatar(source);
+    }
+  }
+
+  Future<void> _pickAndUploadAvatar(ImageSource source) async {
+    final XFile? picked;
+    try {
+      // Downscaled on the device. A 48MP photo is about 5MB on the wire and
+      // needs far more than that to decode; at 1600px it is a few hundred KB
+      // before it ever leaves the phone, and the server crops it to 512 anyway.
+      picked = await ImagePicker().pickImage(
+        source: source,
+        maxWidth: 1600,
+        maxHeight: 1600,
+        imageQuality: 85,
+      );
+    } on PlatformException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(e.code == 'camera_access_denied'
+              ? 'Camera access is off for this app. Turn it on in Settings to take a photo.'
+              : 'Could not open ${source == ImageSource.camera ? 'the camera' : 'your gallery'}.'),
+          backgroundColor: AppColors.error,
+        ));
+      }
+      return;
+    }
+
+    if (picked == null) return;   // they backed out
 
     setState(() => _uploadingAvatar = true);
     try {
       final formData = FormData.fromMap({
-        'avatar': await MultipartFile.fromFile(file.path!, filename: file.name),
+        'avatar': await MultipartFile.fromFile(picked.path, filename: picked.name),
       });
       await ApiService.postForm(ApiConstants.profileAvatar, formData);
+
+      // The new picture lives at the same URL, so the cached one has to go or
+      // the old face stays on screen until the app is restarted.
+      imageCache.clear();
+      imageCache.clearLiveImages();
+      ref.invalidate(authProvider);
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Avatar updated'), backgroundColor: AppColors.success),
+          const SnackBar(content: Text('Photo updated'), backgroundColor: AppColors.success),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload failed: $e'), backgroundColor: AppColors.error),
+          SnackBar(content: Text(_uploadError(e)), backgroundColor: AppColors.error),
         );
       }
     } finally {
       if (mounted) setState(() => _uploadingAvatar = false);
     }
+  }
+
+  /// "Upload failed: DioException [bad response]..." tells somebody nothing.
+  String _uploadError(Object e) {
+    if (e is DioException) {
+      final data = e.response?.data;
+      if (data is Map) {
+        final errors = data['errors'];
+        if (errors is Map && errors.isNotEmpty) {
+          final first = errors.values.first;
+          if (first is List && first.isNotEmpty) return first.first.toString();
+        }
+        if (data['message'] is String) return data['message'] as String;
+      }
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        return 'The upload timed out. Check your connection and try again.';
+      }
+    }
+    return 'That photo could not be saved. Please try again.';
   }
 
   Future<void> _saveProfile() async {
