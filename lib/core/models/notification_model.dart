@@ -29,17 +29,50 @@ class NotificationModel {
 
   String get message => body;
 
+  /// The instant this was created, read correctly whatever the server sent.
+  ///
+  /// `DateTime.parse` treats a string with no zone marker as LOCAL time. The
+  /// server stores UTC and the phone is on EAT, so a bare "2026-10-13 14:26:00"
+  /// was read as 14:26 EAT against a clock saying 17:26 -- a message sent one
+  /// minute earlier displayed as "3h ago", and every timestamp in the app was
+  /// stale by exactly the offset.
+  ///
+  /// The API now sends ISO 8601 with the offset, which parses unambiguously.
+  /// This still assumes UTC for an unmarked string, so the app stays right if
+  /// anything ever sends the old shape again.
+  DateTime? get createdAtUtc {
+    final raw = createdAt.trim();
+    if (raw.isEmpty) return null;
+
+    final parsed = DateTime.tryParse(raw);
+    if (parsed == null) return null;
+
+    // tryParse sets isUtc only when the string carried Z or an offset.
+    if (parsed.isUtc) return parsed;
+
+    final zoned = RegExp(r'(Z|[+-]\d{2}:?\d{2})$').hasMatch(raw);
+    if (zoned) return parsed.toUtc();
+
+    // No zone in the string: it came from the server, so it is UTC.
+    return DateTime.utc(
+      parsed.year, parsed.month, parsed.day,
+      parsed.hour, parsed.minute, parsed.second, parsed.millisecond,
+    );
+  }
+
   String get timeAgo {
-    try {
-      final dt = DateTime.parse(createdAt);
-      final diff = DateTime.now().difference(dt);
-      if (diff.inMinutes < 1) return 'just now';
-      if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-      if (diff.inHours < 24) return '${diff.inHours}h ago';
-      return '${diff.inDays}d ago';
-    } catch (_) {
-      return '';
-    }
+    final dt = createdAtUtc;
+    if (dt == null) return '';
+
+    final diff = DateTime.now().toUtc().difference(dt);
+
+    // A clock a little behind the server should not read "in 2 minutes".
+    if (diff.isNegative) return 'just now';
+
+    if (diff.inMinutes < 1) return 'just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
   }
 
   /// Last resort when the server sent no title: 'payroll_processed' reads

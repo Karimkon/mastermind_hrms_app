@@ -110,6 +110,32 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = const AuthState();
   }
 
+  /// Re-read the signed-in user from the server and persist what comes back.
+  ///
+  /// `ref.invalidate(authProvider)` does NOT do this. Invalidating disposes the
+  /// notifier and builds a new one, whose constructor calls
+  /// _tryRestoreSession() -- which reads the user out of local storage. So the
+  /// stale copy is simply loaded again and the server is never asked.
+  ///
+  /// That is why a new profile photo never appeared. The upload succeeded, the
+  /// file was on the server and its URL returned 200, but the cached user still
+  /// carried avatar_url: null and kept carrying it until the next full login.
+  Future<void> refreshUser() async {
+    try {
+      final res = await ApiService.get(ApiConstants.me);
+      final body = res.data as Map<String, dynamic>;
+
+      // /auth/me returns the user either bare or wrapped in `user`.
+      final raw = (body['user'] ?? body) as Map<String, dynamic>;
+      final user = UserModel.fromJson(raw);
+
+      await StorageService.saveUser(jsonEncode(user.toJson()));
+      state = state.copyWith(user: user, isAuthenticated: true);
+    } catch (_) {
+      // A refresh failing must never sign anybody out; the cached user stands.
+    }
+  }
+
   Future<void> _saveSession(Map<String, dynamic> body) async {
     final token = body['token'] as String;
     final user = UserModel.fromJson(body['user'] as Map<String, dynamic>);

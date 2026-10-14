@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
@@ -230,7 +231,40 @@ class _MobileShellState extends ConsumerState<_MobileShell> {
     final List<_BottomNavItem> bottomItems = _getBottomNavItems(user);
     final currentIndex = _getCurrentIndex(location, bottomItems);
 
-    return Scaffold(
+    /*
+     | What the phone's back button does.
+     |
+     | Nothing handled it, so from any tab other than the first one back went
+     | straight past the app and closed it -- losing whatever was on screen,
+     | with no warning and nothing to return to.
+     |
+     | Three behaviours, in the order a person expects:
+     |   - a pushed screen pops, which go_router does itself (canPop)
+     |   - any other tab returns to the Dashboard first
+     |   - on the Dashboard, back asks once before leaving
+     */
+    final onFirstTab = bottomItems.isNotEmpty && currentIndex == 0;
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+
+        final router = GoRouter.of(context);
+
+        if (router.canPop()) {
+          router.pop();
+          return;
+        }
+
+        if (!onFirstTab && bottomItems.isNotEmpty) {
+          context.go(bottomItems.first.path);
+          return;
+        }
+
+        _confirmExit();
+      },
+      child: Scaffold(
       backgroundColor: AppColors.surface,
       appBar: _MobileAppBar(user: user, unreadCount: widget.unreadCount, location: location),
       drawer: _MobileDrawer(navItems: widget.navItems, user: user),
@@ -249,6 +283,33 @@ class _MobileShellState extends ConsumerState<_MobileShell> {
               )).toList(),
             )
           : null,
+      ),
+    );
+  }
+
+  /// "Press back again to exit", rather than closing on the first press.
+  ///
+  /// Leaving the app is the one thing back does that cannot be undone, so it
+  /// is the one thing worth asking about.
+  DateTime? _lastBackPress;
+
+  void _confirmExit() {
+    final now = DateTime.now();
+
+    if (_lastBackPress != null &&
+        now.difference(_lastBackPress!) < const Duration(seconds: 2)) {
+      SystemNavigator.pop();
+      return;
+    }
+
+    _lastBackPress = now;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Press back again to exit'),
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 

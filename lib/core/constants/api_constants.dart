@@ -118,6 +118,7 @@ class ApiConstants {
   static const String amClients      = '/account-manager/clients';
   static const String amEmployees    = '/account-manager/employees';
   static const String amLeaves       = '/account-manager/leaves';
+  static const String amExpiringDocuments = '/account-manager/expiring-documents';
   static const String amPayroll         = '/account-manager/payroll';
   static const String amSalaryPayments  = '/account-manager/salary-payments';
 

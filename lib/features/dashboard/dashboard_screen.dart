@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
@@ -9,6 +8,7 @@ import '../../core/providers/dashboard_provider.dart';
 import '../../core/providers/attendance_provider.dart';
 import '../../core/models/attendance_model.dart';
 import '../../core/services/location_disclosure.dart';
+import '../../core/navigation/app_nav.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -238,7 +238,7 @@ class _EmployeeDashboard extends StatelessWidget {
               child: _DashCard(
                 title: 'My Leave Balances',
                 action: TextButton(
-                  onPressed: () => context.go('/leaves'),
+                  onPressed: () => AppNav.open(context, '/leaves'),
                   child: const Text('Apply for leave', style: TextStyle(fontSize: 12)),
                 ),
                 child: Column(
@@ -286,7 +286,7 @@ class _EmployeeDashboard extends StatelessWidget {
               child: _DashCard(
                 title: 'My Leave Requests',
                 action: TextButton(
-                  onPressed: () => context.go('/leaves'),
+                  onPressed: () => AppNav.open(context, '/leaves'),
                   child: const Text('+ New request', style: TextStyle(fontSize: 12)),
                 ),
                 child: pendingLeaves.isEmpty
@@ -303,7 +303,7 @@ class _EmployeeDashboard extends StatelessWidget {
               child: _DashCard(
                 title: 'My Payslips',
                 action: TextButton(
-                  onPressed: () => context.go('/my-payslips'),
+                  onPressed: () => AppNav.open(context, '/my-payslips'),
                   child: const Text('View all', style: TextStyle(fontSize: 12)),
                 ),
                 child: payslips.isEmpty
@@ -325,7 +325,7 @@ class _EmployeeDashboard extends StatelessWidget {
               child: _DashCard(
                 title: 'My Training',
                 action: TextButton(
-                  onPressed: () => context.go('/training'),
+                  onPressed: () => AppNav.open(context, '/training'),
                   child: const Text('Browse courses', style: TextStyle(fontSize: 12)),
                 ),
                 child: trainings.isEmpty
@@ -340,7 +340,7 @@ class _EmployeeDashboard extends StatelessWidget {
               child: _DashCard(
                 title: 'Upcoming Meetings',
                 action: TextButton(
-                  onPressed: () => context.go('/meetings'),
+                  onPressed: () => AppNav.open(context, '/meetings'),
                   child: const Text('View calendar', style: TextStyle(fontSize: 12)),
                 ),
                 child: meetings.isEmpty
@@ -373,12 +373,15 @@ class _AccountManagerDashboard extends StatelessWidget {
       children: [
         // Stats grid
         _StatCardGrid(cards: [
+            // Each one opens the screen it is counting. The employees screen
+            // carries the client picker, so both of the first two land there.
             _StatCard(
               value: '${stats['total_clients'] ?? 0}',
               label: 'Managed Clients',
               icon: Icons.business_rounded,
               color: AppColors.primary,
               bg: AppColors.infoLight,
+              onTap: () => AppNav.open(context, '/am-employees'),
             ),
             _StatCard(
               value: '${stats['total_employees'] ?? 0}',
@@ -386,6 +389,7 @@ class _AccountManagerDashboard extends StatelessWidget {
               icon: Icons.people_rounded,
               color: AppColors.success,
               bg: AppColors.successLight,
+              onTap: () => AppNav.open(context, '/am-employees'),
             ),
             _StatCard(
               value: '${stats['pending_leaves'] ?? 0}',
@@ -393,6 +397,7 @@ class _AccountManagerDashboard extends StatelessWidget {
               icon: Icons.event_busy_rounded,
               color: AppColors.warning,
               bg: AppColors.warningLight,
+              onTap: () => AppNav.open(context, '/am-leaves'),
             ),
             _StatCard(
               value: '${stats['expiring_docs'] ?? 0}',
@@ -400,6 +405,7 @@ class _AccountManagerDashboard extends StatelessWidget {
               icon: Icons.warning_amber_rounded,
               color: AppColors.error,
               bg: AppColors.errorLight,
+              onTap: () => AppNav.open(context, '/am-expiring-documents'),
             ),
           ]),
         const SizedBox(height: 24),
@@ -416,28 +422,28 @@ class _AccountManagerDashboard extends StatelessWidget {
                 icon: Icons.badge_rounded,
                 color: AppColors.primary,
                 bg: AppColors.infoLight,
-                onTap: () => context.go('/am-employees'),
+                onTap: () => AppNav.open(context, '/am-employees'),
               ),
               _QuickAction(
                 label: 'Leave Requests',
                 icon: Icons.event_available_rounded,
                 color: AppColors.warning,
                 bg: AppColors.warningLight,
-                onTap: () => context.go('/am-leaves'),
+                onTap: () => AppNav.open(context, '/am-leaves'),
               ),
               _QuickAction(
                 label: 'Payroll',
                 icon: Icons.payments_rounded,
                 color: AppColors.success,
                 bg: AppColors.successLight,
-                onTap: () => context.go('/am-payroll'),
+                onTap: () => AppNav.open(context, '/am-payroll'),
               ),
               _QuickAction(
                 label: 'Site Visits',
                 icon: Icons.location_on_rounded,
                 color: const Color(0xFF8B5CF6),
                 bg: const Color(0xFFF5F3FF),
-                onTap: () => context.go('/am-visits'),
+                onTap: () => AppNav.open(context, '/am-visits'),
               ),
             ],
           ),
@@ -448,7 +454,7 @@ class _AccountManagerDashboard extends StatelessWidget {
         _DashCard(
           title: 'Pending Leave Requests',
           action: TextButton(
-            onPressed: () => context.go('/am-leaves'),
+            onPressed: () => AppNav.open(context, '/am-leaves'),
             child: const Text('View all', style: TextStyle(fontSize: 12)),
           ),
           child: pendingLeaves.isEmpty
@@ -528,7 +534,7 @@ class _AdminDashboard extends StatelessWidget {
               flex: 2,
               child: _DashCard(
                 title: 'Pending Leave Requests',
-                action: TextButton(onPressed: () => context.go('/leaves'), child: const Text('View all', style: TextStyle(fontSize: 12))),
+                action: TextButton(onPressed: () => AppNav.open(context, '/leaves'), child: const Text('View all', style: TextStyle(fontSize: 12))),
                 child: pendingLeaves.isEmpty
                     ? const _EmptyState(icon: Icons.beach_access_rounded, label: 'No pending requests')
                     : Column(
@@ -595,7 +601,7 @@ class _PayrollDashboard extends StatelessWidget {
         const SizedBox(height: 24),
         _DashCard(
           title: 'Recent Payroll Runs',
-          action: TextButton(onPressed: () => context.go('/payroll'), child: const Text('View all', style: TextStyle(fontSize: 12))),
+          action: TextButton(onPressed: () => AppNav.open(context, '/payroll'), child: const Text('View all', style: TextStyle(fontSize: 12))),
           child: recent.isEmpty
               ? const _EmptyState(icon: Icons.payments_rounded, label: 'No payroll runs yet')
               : Column(children: recent.take(5).map((p) => _PayrollRunRow(run: p)).toList()),
@@ -632,7 +638,7 @@ class _RecruiterDashboard extends StatelessWidget {
             Expanded(
               child: _DashCard(
                 title: 'Open Job Postings',
-                action: TextButton(onPressed: () => context.go('/recruitment/jobs'), child: const Text('View all', style: TextStyle(fontSize: 12))),
+                action: TextButton(onPressed: () => AppNav.open(context, '/recruitment/jobs'), child: const Text('View all', style: TextStyle(fontSize: 12))),
                 child: openJobs.isEmpty
                     ? const _EmptyState(icon: Icons.work_outline_rounded, label: 'No open jobs')
                     : Column(children: openJobs.take(5).map((j) => _JobRow(job: j)).toList()),
@@ -642,7 +648,7 @@ class _RecruiterDashboard extends StatelessWidget {
             Expanded(
               child: _DashCard(
                 title: 'Recent Candidates',
-                action: TextButton(onPressed: () => context.go('/recruitment/candidates'), child: const Text('View all', style: TextStyle(fontSize: 12))),
+                action: TextButton(onPressed: () => AppNav.open(context, '/recruitment/candidates'), child: const Text('View all', style: TextStyle(fontSize: 12))),
                 child: recentCandidates.isEmpty
                     ? const _EmptyState(icon: Icons.person_search_rounded, label: 'No candidates yet')
                     : Column(children: recentCandidates.take(5).map((c) => _CandidateRow(candidate: c)).toList()),
@@ -678,7 +684,7 @@ class _ClientDashboard extends StatelessWidget {
             Expanded(
               child: _DashCard(
                 title: 'Pending Leave Requests',
-                action: TextButton(onPressed: () => context.go('/client/leaves'), child: const Text('View all', style: TextStyle(fontSize: 12))),
+                action: TextButton(onPressed: () => AppNav.open(context, '/client/leaves'), child: const Text('View all', style: TextStyle(fontSize: 12))),
                 child: pendingLeaves.isEmpty
                     ? const _EmptyState(icon: Icons.beach_access_rounded, label: 'No pending requests')
                     : Column(children: pendingLeaves.take(5).map((l) => _AdminLeaveRow(leave: l)).toList()),
@@ -688,7 +694,7 @@ class _ClientDashboard extends StatelessWidget {
             Expanded(
               child: _DashCard(
                 title: 'Candidates Awaiting Review',
-                action: TextButton(onPressed: () => context.go('/client/recruitment'), child: const Text('View all', style: TextStyle(fontSize: 12))),
+                action: TextButton(onPressed: () => AppNav.open(context, '/client/recruitment'), child: const Text('View all', style: TextStyle(fontSize: 12))),
                 child: pendingCandidates.isEmpty
                     ? const _EmptyState(icon: Icons.person_search_rounded, label: 'No candidates pending')
                     : Column(children: pendingCandidates.take(5).map((c) => _CandidateRow(candidate: c)).toList()),
@@ -731,17 +737,34 @@ class _StatCardGrid extends StatelessWidget {
   }
 }
 
+/// A dashboard figure, and where to go to see what is behind it.
+///
+/// These were flat Containers. Every one of them counts something that lives
+/// on a screen of its own -- the clients, the staff, the leave waiting on you,
+/// the documents about to lapse -- so a number you could not tap left the
+/// reader to find that screen themselves, or more often not to bother.
+///
+/// [onTap] is optional: a card with no sensible destination stays unclickable
+/// rather than pretending, and draws no chevron so nothing is promised.
 class _StatCard extends StatelessWidget {
   final String value;
   final String label;
   final IconData icon;
   final Color color;
   final Color bg;
-  const _StatCard({required this.value, required this.label, required this.icon, required this.color, required this.bg});
+  final VoidCallback? onTap;
+  const _StatCard({
+    required this.value,
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.bg,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final card = Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -766,7 +789,25 @@ class _StatCard extends StatelessWidget {
               ],
             ),
           ),
+          // Only drawn when there is somewhere to go.
+          if (onTap != null)
+            Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textSecondary),
         ],
+      ),
+    );
+
+    if (onTap == null) return card;
+
+    return Semantics(
+      button: true,
+      label: '$label, $value',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: card,
+        ),
       ),
     );
   }

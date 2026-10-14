@@ -35,6 +35,7 @@ import '../../features/office_attendance/office_attendance_screen.dart';
 import '../../features/overtime/overtime_screen.dart';
 import '../../features/am_visits/am_employees_screen.dart';
 import '../../features/am_visits/am_leaves_screen.dart';
+import '../../features/am_visits/am_expiring_documents_screen.dart';
 import '../../features/am_visits/am_payroll_screen.dart';
 import '../../features/am_visits/am_salary_payments_screen.dart';
 import '../../features/appraisals/appraisals_screen.dart';
@@ -198,6 +199,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/overtime',             builder: (_, _) => const OvertimeScreen()),
           GoRoute(path: '/am-employees',         builder: (_, _) => const AmEmployeesScreen()),
           GoRoute(path: '/am-leaves',            builder: (_, _) => const AmLeavesScreen()),
+          // The list behind the dashboard's "Expiring Documents" count,
+          // which until now was a number with nowhere to go.
+          GoRoute(path: '/am-expiring-documents', builder: (_, _) => const AmExpiringDocumentsScreen()),
           GoRoute(path: '/am-payroll',           builder: (_, _) => const AmPayrollScreen()),
           GoRoute(path: '/am-salary-payments',  builder: (_, _) => const AmSalaryPaymentsScreen()),
           // Appraisal cards. The /bsc routes below remain reachable while the

@@ -312,11 +312,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       });
       await ApiService.postForm(ApiConstants.profileAvatar, formData);
 
-      // The new picture lives at the same URL, so the cached one has to go or
-      // the old face stays on screen until the app is restarted.
+      // The file name changes on every upload, but Flutter caches by URL and
+      // the old one may still be held, so clear it.
       imageCache.clear();
       imageCache.clearLiveImages();
-      ref.invalidate(authProvider);
+
+      /*
+       | Re-read the user from the SERVER, not from disk.
+       |
+       | This used to be ref.invalidate(authProvider), which looks like a
+       | refresh and is not: invalidating rebuilds the notifier, whose
+       | constructor restores the user from local storage. The cached copy --
+       | still carrying avatar_url: null -- was simply loaded again, so the
+       | upload succeeded, the snackbar said "Photo updated", and the circle
+       | stayed empty until the next full login.
+       */
+      await ref.read(authProvider.notifier).refreshUser();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
