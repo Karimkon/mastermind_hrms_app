@@ -944,8 +944,12 @@ class _NotificationsSheet extends ConsumerWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              const Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              const Spacer(),
+              const Expanded(
+                child: Text('Notifications',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              ),
               TextButton(
                 onPressed: () {
                   ref.read(notificationsProvider.notifier).markAllRead();

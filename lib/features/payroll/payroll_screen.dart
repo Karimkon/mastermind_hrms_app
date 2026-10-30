@@ -37,8 +37,17 @@ class PayrollScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Text('Payroll Runs', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-              const Spacer(),
+              // Expanded, not Spacer: on a narrow phone the title plus the
+              // button exceeded the width, the Spacer collapsed, and the Row
+              // overflowed. The heading truncates instead.
+              Expanded(
+                child: Text(
+                  'Payroll Runs',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                ),
+              ),
               ElevatedButton.icon(
                 onPressed: () => _showNewRunDialog(context, ref),
                 icon: const Icon(Icons.add, size: 16),
@@ -193,14 +202,19 @@ class _PayrollRunCard extends StatelessWidget {
             const SizedBox(height: 16),
             const Divider(height: 1),
             const SizedBox(height: 16),
-            Row(
+            // Three money figures and the action buttons on one Row. Each
+            // figure is something like "UGX 71,444,500", so on a phone this
+            // was far past the edge - the Spacer collapsed and the rest
+            // overflowed. A Wrap lets the figures sit on their own line and
+            // the buttons fall below them.
+            Wrap(
+              spacing: AppSpace.xxxl,
+              runSpacing: AppSpace.lg,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 _PayStat('Gross Payroll', 'UGX ${fmt.format(totalGross)}', AppColors.primary),
-                const SizedBox(width: 32),
                 _PayStat('Total Deductions', 'UGX ${fmt.format(totalGross - totalNet)}', AppColors.error),
-                const SizedBox(width: 32),
                 _PayStat('Net Payroll', 'UGX ${fmt.format(totalNet)}', AppColors.success),
-                const Spacer(),
                 if (status == 'draft')
                   ElevatedButton(
                     onPressed: () async {
@@ -339,8 +353,17 @@ class _PayslipsSheet extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
             child: Row(
               children: [
-                const Text('Payslips', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                const Spacer(),
+                // Expanded, not Spacer: on a narrow phone the title plus the
+                // button exceeded the width, the Spacer collapsed, and the Row
+                // overflowed. The heading truncates instead.
+                Expanded(
+                  child: Text(
+                    'Payslips',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
+                ),
                 IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
               ],
             ),

@@ -27,11 +27,16 @@ class _MeetingsScreenState extends ConsumerState<MeetingsScreen> {
         children: [
           Row(
             children: [
-              const Text(
-                'Meetings',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              // Expanded, not Spacer: see the other headers. The title
+              // truncates so the button always has its room.
+              const Expanded(
+                child: Text(
+                  'Meetings',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                ),
               ),
-              const Spacer(),
               ElevatedButton.icon(
                 onPressed: () => _showCreateDialog(context),
                 icon: const Icon(Icons.add, size: 16),

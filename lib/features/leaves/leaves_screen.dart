@@ -60,11 +60,18 @@ class _LeavesScreenState extends ConsumerState<LeavesScreen> with SingleTickerPr
             const SizedBox(height: 24),
           ],
 
-          // Header row
-          Row(
+          // Header row.
+          //
+          // Was a Row: title, Spacer, status dropdown, then "Apply for Leave".
+          // On a phone that overflowed by 50 pixels and painted the striped
+          // bars across the button - and because the Spacer collapsed first,
+          // the title and the dropdown ran together as "Leave RequestsAll".
+          Wrap(
+            spacing: AppSpace.md,
+            runSpacing: AppSpace.sm,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               const Text('Leave Requests', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-              const Spacer(),
               // Status filter
               DropdownButton<String>(
                 value: _statusFilter,
@@ -77,7 +84,6 @@ class _LeavesScreenState extends ConsumerState<LeavesScreen> with SingleTickerPr
                 ],
                 onChanged: (v) => setState(() => _statusFilter = v ?? 'all'),
               ),
-              const SizedBox(width: 12),
               ElevatedButton.icon(
                 onPressed: () => _showApplyDialog(context),
                 icon: const Icon(Icons.add, size: 16),

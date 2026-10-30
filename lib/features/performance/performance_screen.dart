@@ -21,8 +21,17 @@ class PerformanceScreen extends ConsumerWidget {
         children: [
           Row(
             children: [
-              const Text('Goals & KPIs', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-              const Spacer(),
+              // Expanded, not Spacer: on a narrow phone the title plus the
+              // button exceeded the width, the Spacer collapsed, and the Row
+              // overflowed. The heading truncates instead.
+              Expanded(
+                child: Text(
+                  'Goals & KPIs',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                ),
+              ),
               ElevatedButton.icon(
                 onPressed: () => _showAddGoalDialog(context, ref),
                 icon: const Icon(Icons.add, size: 16),
