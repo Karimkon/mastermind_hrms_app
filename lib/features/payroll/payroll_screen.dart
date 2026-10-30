@@ -6,6 +6,7 @@ import '../../core/constants/api_constants.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/payroll_provider.dart';
 import '../../core/services/json_num.dart';
+import '../../core/services/text_safe.dart';
 
 /// The one approval stage a run is currently at, or null if it is not waiting on
 /// an approval at all.
@@ -184,7 +185,7 @@ class _PayrollRunCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(12)),
-                  child: Text(status[0].toUpperCase() + status.substring(1),
+                  child: Text(capitalise(status),
                       style: TextStyle(color: statusFg, fontWeight: FontWeight.w600, fontSize: 12)),
                 ),
               ],

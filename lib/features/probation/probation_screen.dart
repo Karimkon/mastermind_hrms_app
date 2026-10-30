@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/models/probation_model.dart';
 import '../../core/providers/probation_provider.dart';
+import '../../core/services/text_safe.dart';
 
 class ProbationScreen extends ConsumerStatefulWidget {
   const ProbationScreen({super.key});
@@ -294,7 +295,7 @@ class _EmployeeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initials = employee.fullName.split(' ').take(2).map((w) => w.isNotEmpty ? w[0] : '').join().toUpperCase();
+    final initials = initialsOf(employee.fullName);
     final isOverdue = employee.isOverdue;
 
     Color statusColor = AppColors.textMuted;

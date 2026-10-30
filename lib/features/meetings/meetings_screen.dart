@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/meeting_provider.dart';
 import 'meeting_files_sheet.dart';
+import '../../core/services/text_safe.dart';
 
 class MeetingsScreen extends ConsumerStatefulWidget {
   const MeetingsScreen({super.key});
@@ -232,7 +233,7 @@ class _MeetingCard extends StatelessWidget {
                     (meeting['type'] as String? ?? 'team')
                         .replaceAll('_', ' ')
                         .split(' ')
-                        .map((w) => w[0].toUpperCase() + w.substring(1))
+                        .map((w) => capitalise(w))
                         .join(' '),
                     style: TextStyle(
                       color: fg,

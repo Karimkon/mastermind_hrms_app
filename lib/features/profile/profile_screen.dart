@@ -7,6 +7,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/services/api_service.dart';
 import '../../core/constants/api_constants.dart';
+import '../../core/services/text_safe.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -50,7 +51,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final user = ref.watch(authProvider).user;
     if (user == null) return const SizedBox.shrink();
 
-    final initials = user.name.split(' ').take(2).map((w) => w.isNotEmpty ? w[0] : '').join().toUpperCase();
+    final initials = initialsOf(user.name);
     final isMobile = MediaQuery.of(context).size.width < 700;
 
     final avatarCard = Container(

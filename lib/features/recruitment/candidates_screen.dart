@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/recruitment_provider.dart';
 import '../../core/models/recruitment_model.dart';
+import '../../core/services/text_safe.dart';
 
 class CandidatesScreen extends ConsumerStatefulWidget {
   const CandidatesScreen({super.key});
@@ -31,10 +32,18 @@ class _CandidatesScreenState extends ConsumerState<CandidatesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          // A Wrap, not a Row: 240 logical pixels of search field plus the
+          // controls beside it is wider than a phone, which is what painted the
+          // striped overflow bars over Attendance. Wrap reflows instead.
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               SizedBox(
-                width: 240,
+                width: MediaQuery.sizeOf(context).width < 560
+                    ? MediaQuery.sizeOf(context).width - 48
+                    : 240,
                 child: TextField(
                   controller: _searchCtrl,
                   onSubmitted: (_) => setState(() {}),
@@ -167,7 +176,7 @@ class _CandidateRow extends StatelessWidget {
               CircleAvatar(
                 radius: 18,
                 backgroundColor: AppColors.infoLight,
-                child: Text(candidate.name[0].toUpperCase(), style: const TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.bold)),
+                child: Text(initial(candidate.name), style: const TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.bold)),
               ),
               const SizedBox(width: 10),
               Expanded(child: Column(
@@ -193,7 +202,7 @@ class _CandidateRow extends StatelessWidget {
           Expanded(child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(12)),
-            child: Text(candidate.status[0].toUpperCase() + candidate.status.substring(1),
+            child: Text(capitalise(candidate.status),
                 style: TextStyle(color: statusFg, fontSize: 11, fontWeight: FontWeight.w600)),
           )),
           Expanded(child: PopupMenuButton<String>(

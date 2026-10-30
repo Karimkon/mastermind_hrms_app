@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/admin_provider.dart';
+import '../../core/services/text_safe.dart';
 
 class AuditScreen extends ConsumerStatefulWidget {
   const AuditScreen({super.key});
@@ -25,10 +26,18 @@ class _AuditScreenState extends ConsumerState<AuditScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          // A Wrap, not a Row: 280 logical pixels of search field plus the
+          // controls beside it is wider than a phone, which is what painted the
+          // striped overflow bars over Attendance. Wrap reflows instead.
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               SizedBox(
-                width: 280,
+                width: MediaQuery.sizeOf(context).width < 560
+                    ? MediaQuery.sizeOf(context).width - 48
+                    : 280,
                 child: TextField(
                   controller: _searchCtrl,
                   onSubmitted: (_) => setState(() {}),
@@ -97,7 +106,7 @@ class _AuditRow extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
-            child: Text(event[0].toUpperCase() + event.substring(1), style: TextStyle(color: fg, fontSize: 11, fontWeight: FontWeight.w700)),
+            child: Text(capitalise(event), style: TextStyle(color: fg, fontSize: 11, fontWeight: FontWeight.w700)),
           ),
           const SizedBox(width: 12),
           Expanded(

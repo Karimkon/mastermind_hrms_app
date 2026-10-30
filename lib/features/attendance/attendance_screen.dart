@@ -6,6 +6,7 @@ import '../../core/providers/attendance_provider.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/models/attendance_model.dart';
 import '../../core/services/location_disclosure.dart';
+import '../../core/services/text_safe.dart';
 
 class AttendanceScreen extends ConsumerStatefulWidget {
   const AttendanceScreen({super.key});
@@ -467,7 +468,7 @@ class _AttendanceRow extends StatelessWidget {
                     CircleAvatar(
                         radius: 14,
                         backgroundColor: AppColors.infoLight,
-                        child: Text((log.employee ?? '?')[0],
+                        child: Text(initial(log.employee),
                             style: const TextStyle(
                                 fontSize: 11,
                                 color: AppColors.primary,
@@ -502,7 +503,7 @@ class _AttendanceRow extends StatelessWidget {
                 decoration:
                     BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(12)),
                 child: Text(
-                  log.status[0].toUpperCase() + log.status.substring(1),
+                  capitalise(log.status),
                   softWrap: false,
                   overflow: TextOverflow.fade,
                   style: TextStyle(

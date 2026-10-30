@@ -5,6 +5,7 @@ import '../../core/constants/api_constants.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/json_num.dart';
+import '../../core/services/text_safe.dart';
 
 class AmSalaryPaymentsScreen extends ConsumerStatefulWidget {
   const AmSalaryPaymentsScreen({super.key});
@@ -293,7 +294,7 @@ class _PaymentCard extends StatelessWidget {
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: AppColors.infoLight,
-                  child: Text(((payment['employee_name'] as String?) ?? '?')[0].toUpperCase(),
+                  child: Text(initial(payment['employee_name']),
                       style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 15)),
                 ),
                 const SizedBox(width: 10),

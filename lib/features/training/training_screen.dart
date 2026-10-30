@@ -43,7 +43,11 @@ class TrainingScreen extends ConsumerWidget {
               child: GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, childAspectRatio: 0.85, crossAxisSpacing: 16, mainAxisSpacing: 16),
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 240,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    mainAxisExtent: 212),
                 itemCount: 6,
                 itemBuilder: (_, _) => Container(decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12))),
               ),
@@ -74,11 +78,22 @@ class TrainingScreen extends ConsumerWidget {
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
+                // Sized by extent, not by a fixed column count.
+                //
+                // Three columns at aspect ratio 1.3 gave each card about
+                // 103 x 79 logical pixels on a phone - and the gradient
+                // header alone is 80. The header ate the whole card, so the
+                // course title and the Enroll button had nowhere to render:
+                // the screen showed three coloured tiles and nothing else.
+                //
+                // mainAxisExtent fixes the height outright rather than
+                // deriving it from a width that varies by device, so the
+                // content always has the room it needs.
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 240,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: 1.3,
+                  mainAxisExtent: 212,
                 ),
                 itemCount: courses.length,
                 itemBuilder: (_, i) => _CourseCard(course: courses[i], ref: ref),
@@ -167,7 +182,13 @@ class _CourseCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(course['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(
+                    course['title'] ?? 'Untitled course',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700, fontSize: 13, height: 1.3),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const Spacer(),
                   if (enrolled && progress > 0) ...[
                     Row(

@@ -1,4 +1,5 @@
 import '../services/json_num.dart';
+import '../services/text_safe.dart';
 /// One field of a proposed change: what it was, what it would become, and
 /// whether somebody else has moved it since the request was made.
 class ChangeDiffRow {
@@ -21,7 +22,7 @@ class ChangeDiffRow {
     final words = field.split('_').where((w) => w.isNotEmpty).toList();
     if (words.isEmpty) return field;
     final first = words.first;
-    return ([first[0].toUpperCase() + first.substring(1)] + words.skip(1).toList()).join(' ');
+    return ([capitalise(first)] + words.skip(1).toList()).join(' ');
   }
 
   static String? _text(dynamic v) {

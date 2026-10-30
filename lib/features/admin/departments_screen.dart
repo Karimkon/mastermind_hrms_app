@@ -48,11 +48,15 @@ class DepartmentsScreen extends ConsumerWidget {
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
+                // By extent, not by a fixed three columns: three columns on
+                // a phone gives each card about 103 logical pixels of width,
+                // which is how the Training cards ended up with no room for
+                // their own text.
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 260,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
-                  childAspectRatio: 1.4,
+                  mainAxisExtent: 150,
                 ),
                 itemCount: depts.length,
                 itemBuilder: (_, i) => _DeptCard(dept: depts[i]),

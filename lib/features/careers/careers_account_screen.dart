@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/careers_provider.dart';
+import '../../core/services/text_safe.dart';
 
 /// A job seeker's own details, and the categories they follow.
 ///
@@ -104,7 +105,7 @@ class _CareersAccountScreenState extends ConsumerState<CareersAccountScreen> {
                   ),
                   child: Center(
                     child: Text(
-                      seeker.name.isEmpty ? '?' : seeker.name[0].toUpperCase(),
+                      initial(seeker.name),
                       style: const TextStyle(
                           fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.primary),
                     ),

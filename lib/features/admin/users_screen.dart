@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/admin_provider.dart';
+import '../../core/services/text_safe.dart';
 
 class UsersScreen extends ConsumerStatefulWidget {
   const UsersScreen({super.key});
@@ -30,10 +31,19 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          // A Wrap, not a Row. The Spacer below made this look safe: it
+          // absorbs leftover width, but when the children already exceed the
+          // screen there is no leftover, the Spacer collapses, and the Row
+          // overflows - which is what painted the striped bars on Attendance.
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               SizedBox(
-                width: 240,
+                width: MediaQuery.sizeOf(context).width < 560
+                    ? MediaQuery.sizeOf(context).width - 48
+                    : 240,
                 child: TextField(
                   controller: _searchCtrl,
                   onSubmitted: (_) => setState(() {}),
@@ -59,7 +69,6 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                 ],
                 onChanged: (v) => setState(() => _roleFilter = v ?? 'all'),
               ),
-              const Spacer(),
               ElevatedButton.icon(
                 onPressed: () => _showAddUserDialog(context),
                 icon: const Icon(Icons.person_add_rounded, size: 16),
@@ -160,7 +169,7 @@ class _UserRow extends StatelessWidget {
         children: [
           Expanded(flex: 2, child: Row(
             children: [
-              CircleAvatar(radius: 16, backgroundColor: AppColors.infoLight, child: Text(name.isNotEmpty ? name[0].toUpperCase() : '?', style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.bold))),
+              CircleAvatar(radius: 16, backgroundColor: AppColors.infoLight, child: Text(initial(name), style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.bold))),
               const SizedBox(width: 10),
               Expanded(child: Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13), overflow: TextOverflow.ellipsis)),
             ],
@@ -177,7 +186,7 @@ class _UserRow extends StatelessWidget {
               color: status == 'active' ? AppColors.successLight : AppColors.errorLight,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Text(status[0].toUpperCase() + status.substring(1),
+            child: Text(capitalise(status),
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: status == 'active' ? AppColors.success : AppColors.error)),
           )),
           Expanded(child: Text(user['created_at'] as String? ?? '-', style: const TextStyle(fontSize: 12, color: AppColors.textMuted))),

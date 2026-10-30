@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/recruitment_provider.dart';
 import '../../core/models/recruitment_model.dart';
+import '../../core/services/text_safe.dart';
 
 class InterviewsScreen extends ConsumerStatefulWidget {
   const InterviewsScreen({super.key});
@@ -155,7 +156,7 @@ class _InterviewCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(12)),
-                child: Text(interview.status[0].toUpperCase() + interview.status.substring(1),
+                child: Text(capitalise(interview.status),
                     style: TextStyle(color: statusFg, fontSize: 11, fontWeight: FontWeight.w700)),
               ),
               if (interview.rating != null) ...[

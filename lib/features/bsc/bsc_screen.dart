@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/models/bsc_model.dart';
 import '../../core/providers/bsc_provider.dart';
+import '../../core/services/text_safe.dart';
 
 class BscScreen extends ConsumerWidget {
   const BscScreen({super.key});
@@ -246,7 +247,7 @@ class _TeamMemberReviewSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final pct = (member.overallScore / 5.0).clamp(0.0, 1.0);
-    final initials = member.fullName.split(' ').take(2).map((w) => w.isNotEmpty ? w[0] : '').join().toUpperCase();
+    final initials = initialsOf(member.fullName);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.55,

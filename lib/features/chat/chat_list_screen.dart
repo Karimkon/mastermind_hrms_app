@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/models/chat_model.dart';
 import '../../core/providers/chat_provider.dart';
+import '../../core/services/text_safe.dart';
 
 /// The threads you are in, most recent first.
 class ChatListScreen extends ConsumerWidget {
@@ -165,9 +166,7 @@ class _Avatar extends StatelessWidget {
       );
     }
 
-    final initials = name.trim().isEmpty
-        ? '?'
-        : name.trim().split(RegExp(r'\s+')).take(2).map((w) => w[0]).join().toUpperCase();
+    final initials = initialsOf(name);
 
     if (url == null || url!.isEmpty) {
       return CircleAvatar(

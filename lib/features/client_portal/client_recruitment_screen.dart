@@ -4,6 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/services/api_service.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/services/json_num.dart';
+import '../../core/services/text_safe.dart';
 
 final _clientRecruitmentProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   try {
@@ -85,7 +86,7 @@ class _CandidateReviewCard extends StatelessWidget {
             radius: 28,
             backgroundColor: AppColors.infoLight,
             child: Text(
-              (candidate['name'] as String? ?? '?')[0].toUpperCase(),
+              initial(candidate['name'] as String?),
               style: const TextStyle(color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),

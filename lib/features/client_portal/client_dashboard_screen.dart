@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/dashboard_provider.dart';
+import '../../core/services/text_safe.dart';
 
 class ClientDashboardScreen extends ConsumerWidget {
   const ClientDashboardScreen({super.key});
@@ -118,7 +119,7 @@ class _LeaveRow extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 8),
     child: Row(children: [
-      CircleAvatar(radius: 16, backgroundColor: AppColors.infoLight, child: Text((leave['employee'] as String? ?? '?')[0].toUpperCase(), style: const TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.bold))),
+      CircleAvatar(radius: 16, backgroundColor: AppColors.infoLight, child: Text(initial(leave['employee'] as String?), style: const TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.bold))),
       const SizedBox(width: 10),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(leave['employee'] ?? '', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
@@ -136,7 +137,7 @@ class _CandidateRow extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 8),
     child: Row(children: [
-      CircleAvatar(radius: 16, backgroundColor: AppColors.infoLight, child: Text((candidate['name'] as String? ?? '?')[0].toUpperCase(), style: const TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.bold))),
+      CircleAvatar(radius: 16, backgroundColor: AppColors.infoLight, child: Text(initial(candidate['name'] as String?), style: const TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.bold))),
       const SizedBox(width: 10),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text(candidate['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),

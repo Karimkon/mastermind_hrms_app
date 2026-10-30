@@ -8,6 +8,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/notifications_provider.dart';
 import '../../core/models/user_model.dart';
+import '../../core/services/text_safe.dart';
 
 class AppShell extends ConsumerStatefulWidget {
   final Widget child;
@@ -480,7 +481,7 @@ class _MobileDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final location = GoRouterState.of(context).matchedLocation;
-    final initials = user.name.split(' ').take(2).map((w) => w.isNotEmpty ? w[0] : '').join().toUpperCase();
+    final initials = initialsOf(user.name);
     final notifications = ref.watch(notificationsProvider).valueOrNull ??
         const NotificationsData(items: [], unreadCount: 0);
 
@@ -791,7 +792,7 @@ class _SidebarUserTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initials = user.name.split(' ').take(2).map((w) => w.isNotEmpty ? w[0] : '').join().toUpperCase();
+    final initials = initialsOf(user.name);
     return GestureDetector(
       onTap: () => context.go('/profile'),
       child: Container(
@@ -893,7 +894,7 @@ class _TopBar extends StatelessWidget {
           GestureDetector(
             onTap: () => context.go('/profile'),
             child: Row(children: [
-              CircleAvatar(radius: 16, backgroundColor: AppColors.primary, child: Text(user.name.isNotEmpty ? user.name[0].toUpperCase() : '?', style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold))),
+              CircleAvatar(radius: 16, backgroundColor: AppColors.primary, child: Text(initial(user.name), style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold))),
               const SizedBox(width: 8),
               Text(user.name.split(' ').first, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
               const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.textSecondary),

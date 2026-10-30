@@ -1,3 +1,4 @@
+import '../services/text_safe.dart';
 class NotificationModel {
   final String id;
   final String type;
@@ -82,7 +83,7 @@ class NotificationModel {
     final words = type.split(RegExp(r'[_\\\\]')).where((w) => w.isNotEmpty).toList();
     if (words.isEmpty) return 'Notification';
     final first = words.first;
-    return ([first[0].toUpperCase() + first.substring(1)] + words.skip(1).toList()).join(' ');
+    return ([capitalise(first)] + words.skip(1).toList()).join(' ');
   }
 
   /// `title` and `body` are columns on the server's notifications table, not

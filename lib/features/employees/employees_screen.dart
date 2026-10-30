@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/employee_provider.dart';
 import '../../core/models/employee_model.dart';
+import '../../core/services/text_safe.dart';
 
 class EmployeesScreen extends ConsumerStatefulWidget {
   const EmployeesScreen({super.key});
@@ -139,7 +140,7 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
                       Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: _StatusChip(
-                          label: s == 'all' ? 'All' : s == 'on_leave' ? 'On Leave' : s[0].toUpperCase() + s.substring(1),
+                          label: s == 'all' ? 'All' : s == 'on_leave' ? 'On Leave' : capitalise(s),
                           selected: _statusFilter == s,
                           onTap: () => setState(() => _statusFilter = s),
                         ),
@@ -191,10 +192,19 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          // A Wrap, not a Row. The Spacer below made this look safe: it
+          // absorbs leftover width, but when the children already exceed the
+          // screen there is no leftover, the Spacer collapses, and the Row
+          // overflows - which is what painted the striped bars on Attendance.
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               SizedBox(
-                width: 280,
+                width: MediaQuery.sizeOf(context).width < 560
+                    ? MediaQuery.sizeOf(context).width - 48
+                    : 280,
                 child: TextField(
                   controller: _searchCtrl,
                   onSubmitted: (_) => setState(() {}),
@@ -233,7 +243,6 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
                 ],
                 onChanged: (v) => setState(() => _statusFilter = v ?? 'all'),
               ),
-              const Spacer(),
               ElevatedButton.icon(
                 onPressed: () => _showAddEmployeeDialog(context),
                 icon: const Icon(Icons.person_add_rounded, size: 16),
@@ -323,7 +332,7 @@ class _EmployeeListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final e = employee;
-    final initials = e.fullName.split(' ').take(2).map((w) => w.isNotEmpty ? w[0] : '').join().toUpperCase();
+    final initials = initialsOf(e.fullName);
 
     return GestureDetector(
       onTap: () => context.push('/employees/${e.id}'),
@@ -461,8 +470,13 @@ class _EmployeeGrid extends StatelessWidget {
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4, crossAxisSpacing: 16, mainAxisSpacing: 16, childAspectRatio: 0.85,
+          // Four fixed columns put each card at roughly 76 logical pixels
+          // wide on a phone - narrower than the avatar inside it.
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 200,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            mainAxisExtent: 190,
           ),
           itemCount: employees.length,
           itemBuilder: (_, i) => _EmployeeGridCard(employee: employees[i]),
@@ -483,7 +497,7 @@ class _EmployeeGridCardState extends State<_EmployeeGridCard> {
   @override
   Widget build(BuildContext context) {
     final e = widget.employee;
-    final initials = e.fullName.split(' ').take(2).map((w) => w.isNotEmpty ? w[0] : '').join().toUpperCase();
+    final initials = initialsOf(e.fullName);
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),

@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/models/document_model.dart';
 import '../../core/providers/documents_provider.dart';
+import '../../core/services/text_safe.dart';
 
 class DocumentsScreen extends ConsumerStatefulWidget {
   const DocumentsScreen({super.key});
@@ -370,7 +371,7 @@ class _UploadDialogState extends ConsumerState<_UploadDialog> {
                 decoration: const InputDecoration(isDense: true),
                 items: _docTypes.map((t) => DropdownMenuItem(
                   value: t,
-                  child: Text(t[0].toUpperCase() + t.substring(1)),
+                  child: Text(capitalise(t)),
                 )).toList(),
                 onChanged: (v) => setState(() => _docType = v ?? 'cv'),
               ),

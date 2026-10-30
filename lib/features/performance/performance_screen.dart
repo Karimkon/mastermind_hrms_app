@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/performance_provider.dart';
 import '../../core/services/json_num.dart';
+import '../../core/services/text_safe.dart';
 
 class PerformanceScreen extends ConsumerWidget {
   const PerformanceScreen({super.key});
@@ -133,7 +134,7 @@ class _GoalCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(12)),
-                child: Text(status.replaceAll('_', ' ').split(' ').map((w) => w[0].toUpperCase() + w.substring(1)).join(' '),
+                child: Text(status.replaceAll('_', ' ').split(' ').map((w) => capitalise(w)).join(' '),
                     style: TextStyle(color: statusFg, fontSize: 11, fontWeight: FontWeight.w600)),
               ),
             ],

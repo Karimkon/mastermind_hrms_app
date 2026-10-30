@@ -5,6 +5,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/leave_provider.dart';
 import '../../core/models/leave_model.dart';
+import '../../core/services/text_safe.dart';
 
 class LeavesScreen extends ConsumerStatefulWidget {
   const LeavesScreen({super.key});
@@ -332,7 +333,7 @@ class _LeaveRow extends StatelessWidget {
       child: Row(
         children: [
           if (isAdmin) Expanded(flex: 2, child: Row(children: [
-            CircleAvatar(radius: 14, backgroundColor: AppColors.infoLight, child: Text((request.employee ?? '?')[0], style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.bold))),
+            CircleAvatar(radius: 14, backgroundColor: AppColors.infoLight, child: Text(initial(request.employee), style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.bold))),
             const SizedBox(width: 8),
             Expanded(child: Text(request.employee ?? '-', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
           ])),
@@ -350,7 +351,7 @@ class _LeaveRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(12)),
             child: Text(
-              request.status[0].toUpperCase() + request.status.substring(1),
+              capitalise(request.status),
               style: TextStyle(color: statusFg, fontSize: 11, fontWeight: FontWeight.w600),
             ),
           )),

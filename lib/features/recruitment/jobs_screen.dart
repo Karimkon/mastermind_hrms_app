@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/recruitment_provider.dart';
 import '../../core/models/recruitment_model.dart';
+import '../../core/services/text_safe.dart';
 
 class JobsScreen extends ConsumerStatefulWidget {
   const JobsScreen({super.key});
@@ -31,10 +32,19 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          // A Wrap, not a Row. The Spacer below made this look safe: it
+          // absorbs leftover width, but when the children already exceed the
+          // screen there is no leftover, the Spacer collapses, and the Row
+          // overflows - which is what painted the striped bars on Attendance.
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               SizedBox(
-                width: 240,
+                width: MediaQuery.sizeOf(context).width < 560
+                    ? MediaQuery.sizeOf(context).width - 48
+                    : 240,
                 child: TextField(
                   controller: _searchCtrl,
                   onSubmitted: (_) => setState(() {}),
@@ -56,7 +66,6 @@ class _JobsScreenState extends ConsumerState<JobsScreen> {
                 ],
                 onChanged: (v) => setState(() => _statusFilter = v ?? 'open'),
               ),
-              const Spacer(),
               ElevatedButton.icon(
                 onPressed: () => _showCreateJobDialog(context),
                 icon: const Icon(Icons.add, size: 16),
@@ -171,7 +180,7 @@ class _JobCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(12)),
-                child: Text(job.status[0].toUpperCase() + job.status.substring(1),
+                child: Text(capitalise(job.status),
                     style: TextStyle(color: statusFg, fontSize: 11, fontWeight: FontWeight.w700)),
               ),
               const SizedBox(height: 8),

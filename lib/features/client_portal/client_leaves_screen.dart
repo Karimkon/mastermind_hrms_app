@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/api_service.dart';
 import '../../core/constants/api_constants.dart';
+import '../../core/services/text_safe.dart';
 
 final _clientLeavesProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   try {
@@ -81,7 +82,7 @@ class _LeaveApprovalCard extends StatelessWidget {
             radius: 24,
             backgroundColor: AppColors.infoLight,
             child: Text(
-              (leave['employee'] as String? ?? '?')[0].toUpperCase(),
+              initial(leave['employee'] as String?),
               style: const TextStyle(color: AppColors.primary, fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),

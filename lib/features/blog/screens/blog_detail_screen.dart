@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/blog_model.dart';
 import '../../../core/providers/blog_provider.dart';
+import '../../../core/services/text_safe.dart';
 
 class BlogDetailScreen extends ConsumerWidget {
   final String slug;
@@ -156,7 +157,7 @@ class _Body extends StatelessWidget {
                       radius: 15,
                       backgroundColor: accent.withValues(alpha: 0.15),
                       child: Text(
-                        post.author.isNotEmpty ? post.author[0].toUpperCase() : 'M',
+                        initial(post.author, fallback: 'M'),
                         style: TextStyle(
                             color: accent, fontWeight: FontWeight.bold, fontSize: 12),
                       ),

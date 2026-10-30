@@ -1,3 +1,4 @@
+import '../services/text_safe.dart';
 class EmployeeModel {
   final int id;
   final String empNumber;
@@ -88,7 +89,7 @@ class EmployeeModel {
       case 'terminated': return 'Terminated';
       case 'suspended': return 'Suspended';
       case 'active': return 'Active';
-      default: return status[0].toUpperCase() + status.substring(1);
+      default: return capitalise(status);
     }
   }
 }

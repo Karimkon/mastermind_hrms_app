@@ -10,6 +10,7 @@ import '../../core/models/attendance_model.dart';
 import '../../core/services/location_disclosure.dart';
 import '../../core/navigation/app_nav.dart';
 import 'office_clock_button.dart';
+import '../../core/services/text_safe.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -82,7 +83,7 @@ class _GreetingCard extends ConsumerWidget {
             radius: 28,
             backgroundColor: Colors.white.withValues(alpha: 0.2),
             child: Text(
-              user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+              initial(user.name),
               style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
             ),
           ),
@@ -1021,7 +1022,7 @@ class _AdminLeaveRow extends StatelessWidget {
             radius: 16,
             backgroundColor: AppColors.infoLight,
             child: Text(
-              (leave['employee'] as String? ?? '?')[0].toUpperCase(),
+              initial(leave['employee'] as String?),
               style: const TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold),
             ),
           ),
@@ -1145,7 +1146,7 @@ class _CandidateRow extends StatelessWidget {
             radius: 14,
             backgroundColor: AppColors.infoLight,
             child: Text(
-              (candidate['name'] as String? ?? '?')[0].toUpperCase(),
+              initial(candidate['name'] as String?),
               style: const TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.bold),
             ),
           ),
@@ -1182,7 +1183,7 @@ class _StatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
       child: Text(
-        status[0].toUpperCase() + status.substring(1),
+        capitalise(status),
         style: TextStyle(color: fg, fontSize: 11, fontWeight: FontWeight.w600),
       ),
     );
