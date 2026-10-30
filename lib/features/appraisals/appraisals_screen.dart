@@ -6,6 +6,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/providers/appraisal_provider.dart';
 import '../../widgets/status_badge.dart';
 import '../../core/services/json_num.dart';
+import '../../core/services/api_service.dart';
 
 /// Appraisal cards, sorted by whether they are waiting on you.
 ///
@@ -29,7 +30,8 @@ class AppraisalsScreen extends ConsumerWidget {
         onRefresh: () async => ref.invalidate(appraisalsProvider),
         child: cards.when(
           loading: () => const _LoadingList(),
-          error: (e, _) => _Failed(onRetry: () => ref.invalidate(appraisalsProvider)),
+          error: (e, _) => _Failed(
+              error: e, onRetry: () => ref.invalidate(appraisalsProvider)),
           data: (list) {
             if (list.isEmpty) return const _Empty();
 
@@ -289,14 +291,33 @@ class _Empty extends StatelessWidget {
   }
 }
 
+/// Why it failed, not just that it did.
+///
+/// This said only "Could not load appraisals" with a Try again button. When
+/// it appeared on a device there was nothing on screen, and nothing in the
+/// server log, to say whether the session had expired, the network had
+/// dropped, or the response had failed to parse — three problems with three
+/// different answers, all looking identical to the person holding the phone.
 class _Failed extends StatelessWidget {
+  final Object? error;
   final VoidCallback onRetry;
 
-  const _Failed({required this.onRetry});
+  const _Failed({required this.onRetry, this.error});
+
+  String get _reason {
+    final e = error;
+    if (e == null) return '';
+    if (e is ApiException) return e.message;
+
+    return e.toString().replaceFirst('Exception: ', '');
+  }
 
   @override
   Widget build(BuildContext context) {
+    final reason = _reason;
+
     return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpace.xxl),
       children: [
         const SizedBox(height: 120),
         const Icon(Icons.cloud_off_rounded, size: 44, color: AppColors.textMuted),
@@ -306,6 +327,17 @@ class _Failed extends StatelessWidget {
               style: TextStyle(
                   fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
         ),
+        if (reason.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Center(
+            child: Text(
+              reason,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                  fontSize: 13, height: 1.45, color: AppColors.textSecondary),
+            ),
+          ),
+        ],
         const SizedBox(height: 14),
         Center(child: OutlinedButton(onPressed: onRetry, child: const Text('Try again'))),
       ],

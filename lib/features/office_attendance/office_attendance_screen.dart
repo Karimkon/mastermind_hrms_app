@@ -6,6 +6,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/models/office_attendance_model.dart';
 import '../../core/providers/office_attendance_provider.dart';
 import '../../core/services/location_disclosure.dart';
+import '../../core/services/api_service.dart';
 
 /// Daily office presence register.
 ///
@@ -54,11 +55,21 @@ class _OfficeAttendanceScreenState extends ConsumerState<OfficeAttendanceScreen>
     }
   }
 
-  /// Surface the server's own message rather than a raw Dio dump.
+  /// Surface the server's own message.
+  ///
+  /// This used to search the string for raw JSON - `"message": "..."` - and
+  /// fall back to "Something went wrong. Please try again." when it found
+  /// none. It never found any: ApiException has already pulled the message
+  /// out of the body by this point, and its toString() returns that message
+  /// alone. So the regex failed every single time and the useful explanation
+  /// was replaced by a useless one.
+  ///
+  /// A refused office clock-in says how far away you are and what to do
+  /// about it. The person saw none of that.
   String _readableError(Object e) {
-    final text = e.toString();
-    final match = RegExp(r'"message"\s*:\s*"([^"]+)"').firstMatch(text);
-    return match?.group(1) ?? 'Something went wrong. Please try again.';
+    if (e is ApiException) return e.message;
+
+    return e.toString().replaceFirst('Exception: ', '');
   }
 
   @override

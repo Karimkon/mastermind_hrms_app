@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/models/overtime_model.dart';
 import '../../core/providers/overtime_provider.dart';
+import '../../core/services/api_service.dart';
 
 /// HR / Admin sign-off on overtime.
 ///
@@ -20,9 +21,14 @@ class OvertimeScreen extends ConsumerStatefulWidget {
 class _OvertimeScreenState extends ConsumerState<OvertimeScreen> {
   String _status = 'pending';
 
+  /// Same bug as the office register had: this searched the string for raw
+  /// JSON that is never there, because ApiException has already extracted
+  /// the server's message and its toString() returns that alone. The regex
+  /// failed every time and replaced a useful explanation with a useless one.
   String _readableError(Object e) {
-    final match = RegExp(r'"message"\s*:\s*"([^"]+)"').firstMatch(e.toString());
-    return match?.group(1) ?? 'Something went wrong. Please try again.';
+    if (e is ApiException) return e.message;
+
+    return e.toString().replaceFirst('Exception: ', '');
   }
 
   Future<void> _decide(OvertimeModel row, OvertimePolicy policy) async {

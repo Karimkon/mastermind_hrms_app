@@ -5,6 +5,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/providers/appraisal_provider.dart';
 import '../../widgets/status_badge.dart';
 import '../../core/services/json_num.dart';
+import '../../core/services/api_service.dart';
 
 /// One appraisal card, and the one thing this person can do with it.
 ///
@@ -58,8 +59,13 @@ class _AppraisalDetailScreenState extends ConsumerState<AppraisalDetailScreen> {
 
   String _message(AsyncValue<void> state) {
     final error = state is AsyncError ? state.error : null;
+
+    // ApiException already carries the server's sentence; its toString()
+    // returns that alone, so the regex below never matched and the message
+    // was replaced by a generic one every time.
+    if (error is ApiException) return error.message;
+
     final text = error?.toString() ?? '';
-    // Dio wraps the body; the useful sentence is the server's `message`.
     final match = RegExp(r'"message":"([^"]+)"').firstMatch(text);
     return match?.group(1) ?? 'That could not be saved. Please try again.';
   }

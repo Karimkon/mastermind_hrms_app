@@ -64,6 +64,12 @@ class ConfigurationActions extends Notifier<AsyncValue<void>> {
   /// ceiling below its floor, NSSF being statutory — and replacing them with
   /// "could not save" would throw away the only useful part.
   String _message(Object error) {
+    // ApiException has already pulled the server's message out of the body,
+    // and its toString() returns that message alone - so searching the
+    // string for raw JSON finds nothing and discards the very sentence it
+    // was trying to recover. Ask the exception instead.
+    if (error is ApiException) return error.message;
+
     final text = error.toString();
 
     final message = RegExp(r'"message":"([^"]+)"').firstMatch(text)?.group(1);
@@ -218,6 +224,10 @@ class HolidayCalendarActions extends Notifier<AsyncValue<void>> {
   /// The refusal reasons here are the whole value — "carries 3 pay decisions and
   /// 12 attendance records" is what stops somebody trying again.
   String _serverMessage(Object error) {
+    // Same again: ApiException already holds the sentence, so the regex
+    // never matched and the reason was thrown away.
+    if (error is ApiException) return error.message;
+
     final text = error.toString();
     final message = RegExp(r'"message":"([^"]+)"').firstMatch(text)?.group(1);
     if (message != null && message.isNotEmpty) return message;
