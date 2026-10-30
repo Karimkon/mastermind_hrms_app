@@ -54,6 +54,7 @@ import '../../features/admin/change_approvals_screen.dart';
 import '../../features/blog/screens/blog_screen.dart';
 import '../../features/blog/screens/blog_detail_screen.dart';
 import '../../features/careers/careers_home_screen.dart';
+import '../../features/support/support_screen.dart';
 import '../../features/careers/careers_job_screen.dart';
 import '../../features/careers/careers_register_screen.dart';
 import '../../features/careers/careers_sign_in_screen.dart';
@@ -107,12 +108,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (path == '/careers') return loggedIn ? '/dashboard' : null;
       if (path.startsWith('/careers/')) return null;
 
+      // Help and contact details are reachable signed in or not. Somebody who
+      // cannot get past the login is exactly who needs the support desk, and
+      // App Review Guideline 1.5 expects contact information to be reachable
+      // rather than hidden behind the thing that is broken.
+      if (path == '/support') return null;
+
       if (!loggedIn && !onAuth) return '/careers';
       if (loggedIn && onAuth) return '/dashboard';
       return null;
     },
     routes: [
       GoRoute(path: '/login', builder: (_, _) => const LoginScreen()),
+      GoRoute(path: '/support', builder: (_, _) => const SupportScreen()),
       // ---- careers: the public side of the app ----
       GoRoute(path: '/careers', builder: (_, _) => const CareersHomeScreen()),
       GoRoute(

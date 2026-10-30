@@ -1,10 +1,10 @@
-import 'dart:math' show sqrt, sin, cos, atan2, pi;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/models/am_visit_model.dart';
+import '../../core/services/geo_fence.dart';
 import '../../core/providers/am_visit_provider.dart';
 import '../../core/services/location_disclosure.dart';
 
@@ -25,7 +25,10 @@ class _AmVisitsScreenState extends ConsumerState<AmVisitsScreen> {
   // Location state
   double? _currentLat;
   double? _currentLng;
-  double? _distanceToClient;
+  /// Where the person stands relative to the selected client, and what the
+  /// server will do about it. Replaces a bare distance, which could not say
+  /// whether being outside meant "flagged" or "refused".
+  FenceCheck? _fence;
   bool _fetchingLocation = false;
 
   @override
@@ -124,7 +127,7 @@ class _AmVisitsScreenState extends ConsumerState<AmVisitsScreen> {
                   isLoading: _clockingIn || _fetchingLocation,
                   locError: _locError,
                   notesCtrl: _notesCtrl,
-                  distanceMetres: _distanceToClient,
+                  fence: _fence,
                 );
               },
             ),
@@ -203,32 +206,22 @@ class _AmVisitsScreenState extends ConsumerState<AmVisitsScreen> {
     }
   }
 
+  /// Measured against the premises the SERVER uses, not the legacy
+  /// work_site_lat/lng pair this used to read. For one client those two are
+  /// about a kilometre apart, so the old reading could contradict the very
+  /// decision it was meant to predict.
   void _updateDistance(List<AmVisitClientModel> clients) {
-    if (_selectedClientId == null || _currentLat == null || _currentLng == null) {
-      _distanceToClient = null;
+    if (_selectedClientId == null) {
+      _fence = null;
       return;
     }
-    final client =
-        clients.firstWhere((c) => c.id == _selectedClientId, orElse: () => clients.first);
-    if (client.workSiteLat != null && client.workSiteLng != null) {
-      _distanceToClient = _haversineDistance(
-        _currentLat!, _currentLng!,
-        client.workSiteLat!, client.workSiteLng!,
-      );
-    } else {
-      _distanceToClient = null;
-    }
-  }
 
-  double _haversineDistance(double lat1, double lon1, double lat2, double lon2) {
-    const r = 6371000.0;
-    final phi1 = lat1 * pi / 180;
-    final phi2 = lat2 * pi / 180;
-    final dphi = (lat2 - lat1) * pi / 180;
-    final dlambda = (lon2 - lon1) * pi / 180;
-    final a = sin(dphi / 2) * sin(dphi / 2) +
-        cos(phi1) * cos(phi2) * sin(dlambda / 2) * sin(dlambda / 2);
-    return 2 * r * atan2(sqrt(a), sqrt(1 - a));
+    final client = clients.firstWhere(
+      (c) => c.id == _selectedClientId,
+      orElse: () => clients.first,
+    );
+
+    _fence = checkFence(client, lat: _currentLat, lng: _currentLng);
   }
 
   // ─── Clock-in ─────────────────────────────────────────────────────────────
@@ -258,7 +251,7 @@ class _AmVisitsScreenState extends ConsumerState<AmVisitsScreen> {
         notes: notes,
       );
       ref.invalidate(amVisitActiveProvider);
-      setState(() { _selectedClientId = null; _distanceToClient = null; });
+      setState(() { _selectedClientId = null; _fence = null; });
       _notesCtrl.clear();
       if (mounted) _showSnack(msg);
     } catch (e) {
@@ -482,7 +475,7 @@ class _ClockInCard extends StatelessWidget {
   final bool isLoading;
   final String? locError;
   final TextEditingController notesCtrl;
-  final double? distanceMetres;
+  final FenceCheck? fence;
 
   const _ClockInCard({
     required this.clients,
@@ -493,15 +486,13 @@ class _ClockInCard extends StatelessWidget {
     required this.isLoading,
     this.locError,
     required this.notesCtrl,
-    this.distanceMetres,
+    this.fence,
   });
 
   @override
   Widget build(BuildContext context) {
-    final radius = selectedClient?.geoFenceRadius ?? 100;
-    final hasCoords = selectedClient?.workSiteLat != null;
-    final withinFence = distanceMetres != null && distanceMetres! <= radius;
-    final outsideFence = distanceMetres != null && distanceMetres! > radius;
+    final check = fence;
+    final blocked = check?.blocksClockIn ?? false;
 
     return Card(
       shape: RoundedRectangleBorder(
@@ -542,60 +533,81 @@ class _ClockInCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
                     color: AppColors.infoLight, borderRadius: BorderRadius.circular(12)),
-                child: Text('${radius}m geo-fence',
+                child: Text('${selectedClient!.sites.isEmpty ? (selectedClient!.geoFenceRadius ?? 100) : selectedClient!.sites.map((s) => s.radius).reduce((a, b) => a < b ? a : b)}m geo-fence',
                     style: const TextStyle(fontSize: 11, color: AppColors.primary)),
               ),
             ]),
           ],
 
-          // Distance / geo-fence status indicator
-          if (selectedClient != null && hasCoords) ...[
+          // How far away, and what will happen - said before anybody taps
+          // rather than after the server has turned them away.
+          if (selectedClient != null && check != null) ...[
             const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: distanceMetres == null
-                    ? AppColors.warningLight
-                    : withinFence
-                        ? AppColors.successLight
-                        : AppColors.errorLight,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(children: [
-                Icon(
-                  distanceMetres == null
-                      ? Icons.gps_not_fixed_rounded
-                      : withinFence
-                          ? Icons.gps_fixed_rounded
-                          : Icons.gps_off_rounded,
-                  size: 16,
-                  color: distanceMetres == null
-                      ? AppColors.warning
-                      : withinFence
-                          ? AppColors.success
-                          : AppColors.error,
+            Builder(builder: (_) {
+              final (bg, fg, icon, text) = switch (check.verdict) {
+                FenceVerdict.notMapped => (
+                    AppColors.warningLight,
+                    AppColors.warning,
+                    Icons.location_off_rounded,
+                    'This client has no work site on record, so your distance '
+                        'cannot be checked. The visit will be recorded and marked '
+                        'unverified.',
+                  ),
+                FenceVerdict.noFix => (
+                    AppColors.warningLight,
+                    AppColors.warning,
+                    Icons.gps_not_fixed_rounded,
+                    'Getting your location…',
+                  ),
+                FenceVerdict.inside => (
+                    AppColors.successLight,
+                    AppColors.success,
+                    Icons.gps_fixed_rounded,
+                    'You are at ${check.nearest!.name} · '
+                        '${check.distanceLabel} from the site '
+                        '(limit ${check.nearest!.radius}m).',
+                  ),
+                FenceVerdict.outsideFlagged => (
+                    AppColors.warningLight,
+                    AppColors.warning,
+                    Icons.gps_off_rounded,
+                    'You are ${check.distanceLabel} from ${check.nearest!.name}, '
+                        'outside the ${check.nearest!.radius}m limit. The visit will '
+                        'still be recorded, but flagged as away from site.',
+                  ),
+                FenceVerdict.outsideRefused => (
+                    AppColors.errorLight,
+                    AppColors.error,
+                    Icons.gps_off_rounded,
+                    'You are ${check.distanceLabel} from ${check.nearest!.name}, '
+                        'outside the ${check.nearest!.radius}m limit, so clocking in '
+                        'here will be refused. Move closer, or ask your supervisor to '
+                        'record the visit.',
+                  ),
+              };
+
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: bg,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    distanceMetres == null
-                        ? 'Fetching your location...'
-                        : withinFence
-                            ? 'Within geo-fence · ${distanceMetres!.round()}m from site'
-                            : 'Outside geo-fence · ${distanceMetres!.round()}m from site (limit: ${radius}m)',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: distanceMetres == null
-                          ? AppColors.warning
-                          : withinFence
-                              ? AppColors.success
-                              : AppColors.error,
+                child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Icon(icon, size: 16, color: fg),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      text,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: fg,
+                      ),
                     ),
                   ),
-                ),
-              ]),
-            ),
+                ]),
+              );
+            }),
           ],
 
           if (locError != null) ...[
@@ -620,7 +632,9 @@ class _ClockInCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: isLoading ? null : onClockIn,
+              // Disabled when the server would refuse anyway. Letting the
+              // tap through only to show an error is a worse way to learn it.
+              onPressed: (isLoading || blocked) ? null : onClockIn,
               icon: isLoading
                   ? const SizedBox(
                       width: 16,
@@ -629,14 +643,20 @@ class _ClockInCard extends StatelessWidget {
                   : const Icon(Icons.login_rounded, size: 18),
               label: Text(isLoading ? 'Getting location...' : 'Clock In'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: outsideFence ? AppColors.warning : AppColors.success,
+                backgroundColor: blocked
+                    ? AppColors.error
+                    : (check?.verdict == FenceVerdict.outsideFlagged
+                        ? AppColors.warning
+                        : AppColors.success),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
             ),
           ),
-          if (outsideFence) ...[
+          // The box above already says the distance and the consequence, so
+          // this only repeats the part that changes what the person does next.
+          if (check?.verdict == FenceVerdict.outsideFlagged) ...[
             const SizedBox(height: 6),
             const Text(
               'You are outside the geo-fence. Your location will be recorded for review.',

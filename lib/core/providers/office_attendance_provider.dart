@@ -38,9 +38,15 @@ class OfficeTodayNotifier extends AsyncNotifier<OfficeTodayState> {
 
   /// Clock in, sending GPS when the device will give it.
   ///
-  /// A refused or unavailable fix is not an error: the server records the
-  /// clock-in without coordinates rather than blocking it, which is the agreed
-  /// behaviour for the office register.
+  /// A missing fix USED to be harmless - the server recorded the clock-in
+  /// without coordinates. It no longer is: now that head office has
+  /// coordinates, a clock-in it cannot check is refused with a 422 saying so,
+  /// because a fence anybody can pass by declining the location permission is
+  /// not a fence. The refusal arrives as an ApiException carrying the server's
+  /// own wording, which is what the screen shows.
+  ///
+  /// Clocking OUT is never refused, wherever the person happens to be:
+  /// stranding somebody clocked in would cost them their real leaving time.
   Future<String> clockIn() => _punch(ApiConstants.officeAttendanceClockIn);
 
   Future<String> clockOut() => _punch(ApiConstants.officeAttendanceClockOut);

@@ -102,7 +102,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                       controller: _emailCtrl,
                       keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(
-                        hintText: 'you@mastermind.co.za',
+                        hintText: 'you@mastermind.autos',
                         prefixIcon: Icon(Icons.email_outlined, size: 18, color: AppColors.textSecondary),
                       ),
                       validator: (v) {
@@ -146,6 +146,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                         onPressed: _loading ? null : () => context.go('/careers'),
                         icon: const Icon(Icons.work_outline, size: 17),
                         label: const Text('Looking for a job? Browse vacancies'),
+                        style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
+                      ),
+                    ),
+                    // Reachable from the login screen itself, because somebody
+                    // who cannot sign in is the person who most needs it.
+                    Center(
+                      child: TextButton.icon(
+                        onPressed: () => context.push('/support'),
+                        icon: const Icon(Icons.help_outline_rounded, size: 17),
+                        label: const Text('Help and support'),
                         style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
                       ),
                     ),
@@ -309,7 +319,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                           controller: _emailCtrl,
                           keyboardType: TextInputType.emailAddress,
                           decoration: const InputDecoration(
-                            hintText: 'you@mastermind.co.za',
+                            hintText: 'you@mastermind.autos',
                             prefixIcon: Icon(Icons.email_outlined, size: 18, color: AppColors.textSecondary),
                           ),
                           validator: (v) {

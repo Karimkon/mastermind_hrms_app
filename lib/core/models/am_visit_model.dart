@@ -54,6 +54,33 @@ class AmVisitSessionModel {
   }
 }
 
+/// One place a clock-in may legitimately happen.
+///
+/// A client can have several. Roofings has two, about ten kilometres apart,
+/// and the nearest one is what the server measures against - so the app has
+/// to know about all of them or it will show a distance the server disagrees
+/// with.
+class WorkSiteModel {
+  final String name;
+  final double lat;
+  final double lng;
+  final int radius;
+
+  const WorkSiteModel({
+    required this.name,
+    required this.lat,
+    required this.lng,
+    required this.radius,
+  });
+
+  factory WorkSiteModel.fromJson(Map<String, dynamic> j) => WorkSiteModel(
+        name:   j['name'] ?? 'Work site',
+        lat:    (j['lat'] as num).toDouble(),
+        lng:    (j['lng'] as num).toDouble(),
+        radius: (j['radius'] as num?)?.toInt() ?? 100,
+      );
+}
+
 class AmVisitClientModel {
   final int id;
   final String companyName;
@@ -62,6 +89,17 @@ class AmVisitClientModel {
   final double? workSiteLng;
   final int? geoFenceRadius;
 
+  /// The places the server will actually accept a clock-in at.
+  ///
+  /// Prefer this over workSiteLat/workSiteLng, which are the legacy single
+  /// pair kept only so older builds keep working. For some clients the two
+  /// disagree by about a kilometre.
+  final List<WorkSiteModel> sites;
+
+  /// Whether being outside the fence stops a clock-in, or merely flags it.
+  /// Off until somebody confirms every premises of that client is mapped.
+  final bool geofenceEnforced;
+
   const AmVisitClientModel({
     required this.id,
     required this.companyName,
@@ -69,7 +107,11 @@ class AmVisitClientModel {
     this.workSiteLat,
     this.workSiteLng,
     this.geoFenceRadius,
+    this.sites = const [],
+    this.geofenceEnforced = false,
   });
+
+  bool get isMapped => sites.isNotEmpty;
 
   factory AmVisitClientModel.fromJson(Map<String, dynamic> j) =>
       AmVisitClientModel(
@@ -79,5 +121,11 @@ class AmVisitClientModel {
         workSiteLat:      (j['work_site_lat'] as num?)?.toDouble(),
         workSiteLng:      (j['work_site_lng'] as num?)?.toDouble(),
         geoFenceRadius:   j['geo_fence_radius'] as int?,
+        // Absent on an older server, which simply means no fence data and
+        // therefore no distance shown - not a crash.
+        sites: ((j['sites'] as List?) ?? const [])
+            .map((s) => WorkSiteModel.fromJson(s as Map<String, dynamic>))
+            .toList(),
+        geofenceEnforced: j['geofence_enforced'] == true,
       );
 }

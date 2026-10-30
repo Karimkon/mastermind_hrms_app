@@ -141,6 +141,17 @@ class _CareersSignInScreenState extends ConsumerState<CareersSignInScreen> {
                 style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
               ),
             ),
+            // This is the screen App Review reaches first, and the screen the
+            // rejected submission got stuck on. The support desk has to be
+            // visible from exactly here.
+            Center(
+              child: TextButton.icon(
+                onPressed: () => context.push('/support'),
+                icon: const Icon(Icons.help_outline_rounded, size: 17),
+                label: const Text('Help and support'),
+                style: TextButton.styleFrom(foregroundColor: AppColors.textSecondary),
+              ),
+            ),
           ],
         ),
       ),

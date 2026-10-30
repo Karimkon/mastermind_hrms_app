@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Live credentials for App Review demo accounts. Never commit this.
+APP_REVIEW_CREDENTIALS.txt
