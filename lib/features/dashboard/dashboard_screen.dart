@@ -21,7 +21,7 @@ class DashboardScreen extends ConsumerWidget {
     final dashAsync = ref.watch(dashboardProvider);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(AppSpace.page(context)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -67,50 +67,128 @@ class _GreetingCard extends ConsumerWidget {
     final emoji = hour < 12 ? '☀️' : hour < 17 ? '🌤️' : '🌙';
     final todayAsync = ref.watch(attendanceTodayProvider);
 
+    final showsClock =
+        !user.isAdmin && !user.isClient && !user.isAccountManager;
+
     return Container(
-      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.primaryDark],
-        ),
-        borderRadius: BorderRadius.circular(16),
+        gradient: AppColors.brandGradient,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        boxShadow: AppColors.shadowLg,
       ),
-      child: Row(
+      child: Stack(
         children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: Colors.white.withValues(alpha: 0.2),
-            child: Text(
-              initial(user.name),
-              style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+          // A soft highlight behind the avatar. Flat gradients read as cheap;
+          // one light source is what gives a surface somewhere to sit.
+          Positioned(
+            left: -40,
+            top: -60,
+            child: Container(
+              width: 190,
+              height: 190,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.07),
+              ),
             ),
           ),
-          const SizedBox(width: 16),
-          Expanded(
+          Padding(
+            padding: const EdgeInsets.all(AppSpace.xl),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  '$greeting, ${user.name.split(' ').first} $emoji',
-                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(2.5),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.28),
+                            width: 1.5),
+                      ),
+                      child: CircleAvatar(
+                        radius: 24,
+                        backgroundColor: Colors.white.withValues(alpha: 0.18),
+                        child: Text(
+                          initialsOf(user.name),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpace.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '$greeting $emoji',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.80),
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                          const SizedBox(height: 1),
+                          Text(
+                            user.name.split(' ').first,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 23,
+                              fontWeight: FontWeight.w700,
+                              height: 1.15,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '${user.employee?.designation ?? _roleLabel(user.roles.isNotEmpty ? user.roles.first : '')} · ${DateFormat('EEEE, MMM d, yyyy').format(now)}',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 13),
+                const SizedBox(height: AppSpace.lg),
+                // Role and date on their own line rather than crushed beside
+                // a 120pt button, which is what squeezed the name before.
+                Row(
+                  children: [
+                    Icon(Icons.badge_outlined,
+                        size: 13, color: Colors.white.withValues(alpha: 0.65)),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      child: Text(
+                        '${user.employee?.designation ?? _roleLabel(user.roles.isNotEmpty ? user.roles.first : '')}  ·  ${DateFormat('EEE, d MMM yyyy').format(now)}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.75),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+                if (showsClock)
+                  todayAsync.when(
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, _) => const SizedBox.shrink(),
+                    data: (state) => Padding(
+                      padding: const EdgeInsets.only(top: AppSpace.lg),
+                      child: _ClockButton(today: state.log, ref: ref),
+                    ),
+                  ),
               ],
             ),
           ),
-          // Clock in/out button for employees (not for AM, admin, or client)
-          if (!user.isAdmin && !user.isClient && !user.isAccountManager)
-            todayAsync.when(
-              loading: () => const SizedBox(width: 120, child: Center(child: CircularProgressIndicator(color: Colors.white))),
-              error: (_, _) => const SizedBox.shrink(),
-              data: (state) => _ClockButton(today: state.log, ref: ref),
-            ),
         ],
       ),
     );
@@ -131,6 +209,16 @@ class _GreetingCard extends ConsumerWidget {
   }
 }
 
+/// The clock control inside the greeting card.
+///
+/// Was a floating box that stacked "In: 12:18" over "Out: 23:00" in 11pt
+/// white, wedged beside the name. It read as a fragment of a table that had
+/// escaped onto a gradient.
+///
+/// Now one full-width control in three states, so it looks placed rather
+/// than left over. Full width because a control that spans its container
+/// reads as deliberate; a small box floating in a large coloured panel does
+/// not.
 class _ClockButton extends StatelessWidget {
   final AttendanceModel? today;
   final WidgetRef ref;
@@ -141,45 +229,126 @@ class _ClockButton extends StatelessWidget {
     final isClockedIn = today?.isClockedIn ?? false;
     final isClockedOut = today?.isClockedOut ?? false;
 
+    // Finished: a quiet summary, not a button. There is nothing left to tap,
+    // and offering something that does nothing is worse than offering
+    // nothing at all.
     if (isClockedOut) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpace.lg, vertical: AppSpace.md),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(10),
+          color: Colors.white.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
           children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-            const SizedBox(height: 4),
-            Text('In: ${today!.clockIn!}', style: const TextStyle(color: Colors.white, fontSize: 11)),
-            Text('Out: ${today!.clockOut!}', style: const TextStyle(color: Colors.white, fontSize: 11)),
+            const Icon(Icons.check_circle_rounded,
+                color: Colors.white, size: 17),
+            const SizedBox(width: AppSpace.sm),
+            Expanded(
+              child: Text(
+                'Done for today',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.95),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Text(
+              '${today!.clockIn} → ${today!.clockOut}',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.75),
+                fontSize: 12,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
           ],
         ),
       );
     }
 
-    return ElevatedButton.icon(
-      onPressed: () async {
-        if (!await LocationDisclosure.ensure(context,
-            purpose: LocationDisclosure.clockIn)) {
-          return;
-        }
+    final label = isClockedIn ? 'Clock out' : 'Clock in';
+    final since = isClockedIn && today?.clockIn != null
+        ? 'Since ${today!.clockIn}'
+        : null;
 
-        if (isClockedIn) {
-          await ref.read(attendanceTodayProvider.notifier).clockOut();
-        } else {
-          await ref.read(attendanceTodayProvider.notifier).clockIn();
-        }
-      },
-      icon: Icon(isClockedIn ? Icons.logout_rounded : Icons.login_rounded, size: 18),
-      label: Text(isClockedIn ? 'Clock Out' : 'Clock In'),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isClockedIn ? AppColors.error : Colors.white,
-        foregroundColor: isClockedIn ? Colors.white : AppColors.primary,
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    return SizedBox(
+      width: double.infinity,
+      child: Material(
+        color: isClockedIn
+            ? Colors.white.withValues(alpha: 0.16)
+            : Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () async {
+            if (!await LocationDisclosure.ensure(context,
+                purpose: LocationDisclosure.clockIn)) {
+              return;
+            }
+
+            if (isClockedIn) {
+              await ref.read(attendanceTodayProvider.notifier).clockOut();
+            } else {
+              await ref.read(attendanceTodayProvider.notifier).clockIn();
+            }
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpace.lg, vertical: AppSpace.md + 1),
+            decoration: isClockedIn
+                ? BoxDecoration(
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.28)),
+                  )
+                : null,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  isClockedIn
+                      ? Icons.logout_rounded
+                      : Icons.fingerprint_rounded,
+                  size: 18,
+                  color: isClockedIn ? Colors.white : AppColors.primary,
+                ),
+                const SizedBox(width: AppSpace.sm),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isClockedIn ? Colors.white : AppColors.primary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                if (since != null) ...[
+                  const SizedBox(width: AppSpace.sm),
+                  Container(
+                    width: 3,
+                    height: 3,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withValues(alpha: 0.55),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpace.sm),
+                  Text(
+                    since,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.80),
+                      fontSize: 12.5,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -726,13 +895,13 @@ class _StatCardGrid extends StatelessWidget {
       final perRow = constraints.maxWidth < 600 ? 2 : cards.length;
       final rows = <Widget>[];
       for (var i = 0; i < cards.length; i += perRow) {
-        if (i > 0) rows.add(const SizedBox(height: 12));
+        if (i > 0) rows.add(const SizedBox(height: AppSpace.md));
         final end = (i + perRow).clamp(0, cards.length);
         final slice = cards.sublist(i, end);
         rows.add(Row(
           children: [
             for (var j = 0; j < perRow; j++) ...[
-              if (j > 0) const SizedBox(width: 12),
+              if (j > 0) const SizedBox(width: AppSpace.md),
               j < slice.length
                   ? Expanded(child: slice[j])
                   : const Expanded(child: SizedBox()),
@@ -773,33 +942,58 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final card = Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(AppSpace.lg - 2),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: AppColors.cardBorder),
+        boxShadow: AppColors.shadowSm,
       ),
       child: Row(
         children: [
           Container(
             width: 38,
             height: 38,
-            decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(
+                color: bg, borderRadius: BorderRadius.circular(AppRadius.md)),
             child: Icon(icon, color: color, size: 18),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: AppSpace.md - 1),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(value, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
-                Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary), maxLines: 2, overflow: TextOverflow.ellipsis),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 19,
+                    fontWeight: FontWeight.w700,
+                    height: 1.15,
+                    letterSpacing: -0.3,
+                    color: AppColors.textPrimary,
+                    // Tabular figures so a column of numbers lines up
+                    // instead of shimmying as the values change.
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  label,
+                  style: const TextStyle(
+                      fontSize: 11.5, height: 1.25, color: AppColors.textSecondary),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
           // Only drawn when there is somewhere to go.
           if (onTap != null)
-            Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.textSecondary),
+            const Icon(Icons.chevron_right_rounded,
+                size: 18, color: AppColors.textMuted),
         ],
       ),
     );
@@ -813,7 +1007,7 @@ class _StatCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           child: card,
         ),
       ),
@@ -832,8 +1026,9 @@ class _DashCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: AppColors.cardBorder),
+        boxShadow: AppColors.shadowSm,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1238,7 +1433,7 @@ class _ErrorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(AppSpace.page(context)),
       decoration: BoxDecoration(
         color: AppColors.errorLight,
         borderRadius: BorderRadius.circular(12),

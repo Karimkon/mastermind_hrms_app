@@ -547,13 +547,28 @@ class _MobileDrawer extends ConsumerWidget {
                 if (item is _NavItem) {
                   final isActive = location == item.path || location.startsWith('${item.path}/');
                   final unread = notifications.countFor(item.area);
-                  return ListTile(
+                  // The active row was a full-strength blue slab across the
+                  // whole drawer - the loudest thing on a dark panel, pulling
+                  // the eye away from where you are trying to go next. A tinted
+                  // fill with a short marker down the leading edge says "you
+                  // are here" without competing with everything else.
+                  return Container(
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: AppSpace.sm, vertical: 1),
+                    decoration: isActive
+                        ? BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.18),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
+                            border: Border.all(
+                                color: AppColors.primary.withValues(alpha: 0.35)),
+                          )
+                        : null,
+                    child: ListTile(
                     dense: true,
                     leading: Icon(item.icon, color: isActive ? Colors.white : AppColors.sidebarText, size: 20),
-                    title: Text(item.label, style: TextStyle(color: isActive ? Colors.white : AppColors.sidebarText, fontWeight: isActive ? FontWeight.w700 : FontWeight.w400, fontSize: 14)),
+                    title: Text(item.label, style: TextStyle(color: isActive ? Colors.white : AppColors.sidebarText, fontWeight: isActive ? FontWeight.w600 : FontWeight.w400, fontSize: 14)),
                     trailing: _NavBadge(count: unread),
-                    tileColor: isActive ? AppColors.sidebarActive : null,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
                     horizontalTitleGap: 8,
                     onTap: () {
                       Navigator.pop(context);
@@ -564,6 +579,7 @@ class _MobileDrawer extends ConsumerWidget {
                       }
                       context.go(item.path);
                     },
+                    ),
                   );
                 }
                 return const SizedBox.shrink();
