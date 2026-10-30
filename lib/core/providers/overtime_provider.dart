@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/api_constants.dart';
 import '../models/overtime_model.dart';
 import '../services/api_service.dart';
+import '../services/json_num.dart';
 
 class OvertimeState {
   final List<OvertimeModel> items;
@@ -52,8 +53,8 @@ class OvertimeNotifier extends AsyncNotifier<OvertimeState> {
       policy: d['policy'] == null
           ? const OvertimePolicy()
           : OvertimePolicy.fromJson(Map<String, dynamic>.from(d['policy'] as Map)),
-      pendingTotal: (d['meta']?['pending_total'] as num?)?.toInt() ?? 0,
-      total: (d['meta']?['total'] as num?)?.toInt() ?? 0,
+      pendingTotal: asInt(d['meta']?['pending_total'], 0),
+      total: asInt(d['meta']?['total'], 0),
       status: status,
     );
   }

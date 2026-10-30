@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../services/api_service.dart';
 import '../constants/api_constants.dart';
 import '../models/bsc_model.dart';
+import '../services/json_num.dart';
 
 // ─── Cycles list ─────────────────────────────────────────────────────────────
 
@@ -29,7 +30,7 @@ final bscMyAppraisalProvider = FutureProvider.autoDispose<MyAppraisalData>((ref)
     return MyAppraisalData(
       cycle:        d['cycle'] != null ? BscCycleModel.fromJson(d['cycle']) : null,
       kras:         (d['kras'] as List? ?? []).map((j) => BscKraWithEntry.fromJson(j)).toList(),
-      overallScore: (d['overall_score'] as num?)?.toDouble() ?? 0,
+      overallScore: asDouble(d['overall_score'], 0),
     );
   } on DioException catch (e) {
     // 404 → this user has no employee record (e.g. admin-only account).

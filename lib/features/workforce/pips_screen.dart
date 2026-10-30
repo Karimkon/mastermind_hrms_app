@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/workforce_provider.dart';
 import '../../widgets/status_badge.dart';
+import '../../core/services/json_num.dart';
 
 /// Performance improvement plans.
 ///
@@ -82,7 +83,7 @@ class _PipCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final objectives = List<String>.from(
         (pip['objectives'] as List?)?.map((o) => o.toString()) ?? const []);
-    final remaining = (pip['days_remaining'] as num?)?.toInt();
+    final remaining = asIntOrNull(pip['days_remaining']);
     final active = pip['status']?.toString() == 'active';
 
     return Container(

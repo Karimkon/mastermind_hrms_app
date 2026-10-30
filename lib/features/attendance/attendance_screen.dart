@@ -111,7 +111,17 @@ class _TodayBar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          // A Wrap, not a Row.
+          //
+          // This was a Row holding the status pill, a Spacer, "Current time:
+          // 16:44" and the Clock In button, which needs more width than a
+          // phone has: it overflowed by 140 pixels and painted the striped
+          // warning bars over the button. Wrap lets the pieces fall onto a
+          // second line on a narrow screen instead.
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 10,
             children: [
               // Status pill
               Container(
@@ -160,10 +170,8 @@ class _TodayBar extends StatelessWidget {
                   ],
                 ),
               ),
-              const Spacer(),
               Text('Current time: $timeStr',
                   style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-              const SizedBox(width: 16),
               if (!isClockedOut)
                 ElevatedButton.icon(
                   onPressed: () async {
@@ -280,10 +288,18 @@ class _FiltersRow extends StatelessWidget {
       return DateFormat('yyyy-MM').format(d);
     });
 
-    return Row(
+    // Also a Wrap, and the search box is no longer pinned to 220 logical
+    // pixels: 220 plus two month/status dropdowns does not fit a phone, which
+    // is where the second overflow came from.
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 12,
+      runSpacing: 8,
       children: [
         SizedBox(
-          width: 220,
+          width: MediaQuery.sizeOf(context).width < 520
+              ? MediaQuery.sizeOf(context).width - 48
+              : 220,
           child: TextField(
             controller: searchCtrl,
             onSubmitted: (_) => onSearch(),
@@ -294,7 +310,6 @@ class _FiltersRow extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 12),
         DropdownButton<String>(
           value: selectedMonth,
           underline: const SizedBox(),
@@ -306,7 +321,6 @@ class _FiltersRow extends StatelessWidget {
               .toList(),
           onChanged: (v) { if (v != null) onMonthChanged(v); },
         ),
-        const SizedBox(width: 12),
         DropdownButton<String>(
           value: selectedStatus,
           underline: const SizedBox(),
@@ -398,7 +412,11 @@ class _AttendanceTable extends StatelessWidget {
                             fontWeight: FontWeight.w700,
                             fontSize: 12,
                             color: AppColors.textSecondary))),
+                // flex: 2 to match the status chip in _AttendanceRow below.
+                // A heading that does not sit over its own column is worse
+                // than no heading.
                 const Expanded(
+                    flex: 2,
                     child: Text('Status',
                         style: TextStyle(
                             fontWeight: FontWeight.w700,
@@ -472,15 +490,24 @@ class _AttendanceRow extends StatelessWidget {
           Expanded(
               child: Text(log.totalHours ?? '-',
                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600))),
+          // The chip used to take an equal Expanded share of the row and
+          // wrapped its own label mid-word - the table read "Prese nt".
+          // Sized to its text instead, and never wrapped.
           Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration:
-                  BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(12)),
-              child: Text(
-                log.status[0].toUpperCase() + log.status.substring(1),
-                style: TextStyle(
-                    color: statusColor, fontSize: 11, fontWeight: FontWeight.w600),
+            flex: 2,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration:
+                    BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(12)),
+                child: Text(
+                  log.status[0].toUpperCase() + log.status.substring(1),
+                  softWrap: false,
+                  overflow: TextOverflow.fade,
+                  style: TextStyle(
+                      color: statusColor, fontSize: 11, fontWeight: FontWeight.w600),
+                ),
               ),
             ),
           ),

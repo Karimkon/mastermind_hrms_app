@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/api_service.dart';
 import '../constants/api_constants.dart';
 import '../models/notification_model.dart';
+import '../services/json_num.dart';
 
 class NotificationsData {
   final List<NotificationModel> items;
@@ -47,7 +48,7 @@ class NotificationsNotifier extends AsyncNotifier<NotificationsData> {
 
   static Map<String, int> _areasFrom(dynamic raw) {
     if (raw is! Map) return const {};
-    return raw.map((k, v) => MapEntry(k.toString(), (v as num?)?.toInt() ?? 0))
+    return raw.map((k, v) => MapEntry(k.toString(), asInt(v, 0)))
       ..removeWhere((_, v) => v <= 0);
   }
 

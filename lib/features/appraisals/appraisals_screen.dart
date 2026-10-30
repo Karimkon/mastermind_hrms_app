@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/appraisal_provider.dart';
 import '../../widgets/status_badge.dart';
+import '../../core/services/json_num.dart';
 
 /// Appraisal cards, sorted by whether they are waiting on you.
 ///
@@ -117,9 +118,9 @@ class _AppraisalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final move = a['your_move'] as String?;
-    final percent = (a['overall_percent'] as num?)?.toDouble();
-    final unrated = (a['unrated_count'] as num?)?.toInt() ?? 0;
-    final kpiCount = (a['kpi_count'] as num?)?.toInt() ?? 0;
+    final percent = asDoubleOrNull(a['overall_percent']);
+    final unrated = asInt(a['unrated_count'], 0);
+    final kpiCount = asInt(a['kpi_count'], 0);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),

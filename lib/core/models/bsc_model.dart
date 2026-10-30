@@ -1,3 +1,4 @@
+import '../services/json_num.dart';
 class BscCycleModel {
   final int id;
   final String name;
@@ -67,9 +68,9 @@ class BscKraModel {
         kraName:         j['kra_name'] ?? '',
         objective:       j['objective'],
         measure:         j['measure'],
-        target:          (j['target'] as num?)?.toDouble() ?? 0,
+        target:          asDouble(j['target'], 0),
         unit:            j['unit'],
-        weightage:       (j['weightage'] as num?)?.toDouble() ?? 0,
+        weightage:       asDouble(j['weightage'], 0),
         reviewFrequency: j['review_frequency'] ?? 'annual',
       );
 
@@ -120,10 +121,10 @@ class BscEntryModel {
         id:               j['id'],
         kraId:            j['kra_id'],
         employeeId:       j['employee_id'],
-        actualAchieved:   (j['actual_achieved'] as num?)?.toDouble(),
-        targetPercent:    (j['target_percent'] as num?)?.toDouble(),
+        actualAchieved:   asDoubleOrNull(j['actual_achieved']),
+        targetPercent:    asDoubleOrNull(j['target_percent']),
         rating:           j['rating'] as int?,
-        weightedIndex:    (j['weighted_index'] as num?)?.toDouble(),
+        weightedIndex:    asDoubleOrNull(j['weighted_index']),
         employeeComment:  j['employee_comment'],
         appraiserComment: j['appraiser_comment'],
         problemAreas:     j['problem_areas'],
@@ -188,7 +189,7 @@ class BscTeamMember {
       designation:   emp['designation'],
       entryCount:    j['entry_count'] ?? 0,
       totalKras:     j['total_kras'] ?? 0,
-      overallScore:  (j['overall_score'] as num?)?.toDouble() ?? 0,
+      overallScore:  asDouble(j['overall_score'], 0),
       progress:      j['progress'] ?? 0,
       approvedCount: j['approved_count'] ?? 0,
       submittedCount:j['submitted_count'] ?? 0,

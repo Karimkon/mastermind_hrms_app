@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/json_num.dart';
 
 class AmPayrollScreen extends ConsumerStatefulWidget {
   const AmPayrollScreen({super.key});
@@ -141,7 +142,7 @@ class _AmPayrollScreenState extends ConsumerState<AmPayrollScreen> {
   }
 
   Widget _buildSummaryCards() {
-    final totalNet   = _runs.fold<double>(0, (s, r) => s + ((r['total_net']   as num?)?.toDouble() ?? 0));
+    final totalNet   = _runs.fold<double>(0, (s, r) => s + (asDouble(r['total_net']  , 0)));
     final totalEmps  = _runs.fold<int>(0, (s, r) => s + ((r['employee_count'] as int?) ?? 0));
 
     return Padding(
@@ -190,8 +191,8 @@ class _RunCard extends StatelessWidget {
     final isLocked = run['is_locked'] == true;
     final status   = run['status'] ?? 'draft';
     final empCount = run['employee_count'] ?? 0;
-    final gross    = (run['total_gross'] as num?)?.toDouble() ?? 0;
-    final net      = (run['total_net']   as num?)?.toDouble() ?? 0;
+    final gross    = asDouble(run['total_gross'], 0);
+    final net      = asDouble(run['total_net']  , 0);
 
     return GestureDetector(
       onTap: empCount > 0 ? onTap : null,
@@ -381,9 +382,9 @@ class _PayslipsSheetState extends State<_PayslipsSheet> {
   }
 
   Widget _buildTotalsCard() {
-    final gross = (_totals!['gross'] as num?)?.toDouble() ?? 0;
-    final net   = (_totals!['net']   as num?)?.toDouble() ?? 0;
-    final tax   = (_totals!['tax']   as num?)?.toDouble() ?? 0;
+    final gross = asDouble(_totals!['gross'], 0);
+    final net   = asDouble(_totals!['net']  , 0);
+    final tax   = asDouble(_totals!['tax']  , 0);
     final count = _totals!['count']  ?? 0;
 
     return Container(
@@ -450,17 +451,17 @@ class _PayslipCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Text('UGX ${fmt.format((payslip['net_salary'] as num?)?.toDouble() ?? 0)}',
+              Text('UGX ${fmt.format(asDouble(payslip['net_salary'], 0))}',
                   style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppColors.success)),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(child: _PayItem(label: 'Basic', value: fmt.format((payslip['basic_salary'] as num?)?.toDouble() ?? 0))),
-              Expanded(child: _PayItem(label: 'Gross', value: fmt.format((payslip['gross_salary'] as num?)?.toDouble() ?? 0))),
-              Expanded(child: _PayItem(label: 'PAYE', value: fmt.format((payslip['tax_amount'] as num?)?.toDouble() ?? 0))),
-              Expanded(child: _PayItem(label: 'Deductions', value: fmt.format((payslip['total_deductions'] as num?)?.toDouble() ?? 0))),
+              Expanded(child: _PayItem(label: 'Basic', value: fmt.format(asDouble(payslip['basic_salary'], 0)))),
+              Expanded(child: _PayItem(label: 'Gross', value: fmt.format(asDouble(payslip['gross_salary'], 0)))),
+              Expanded(child: _PayItem(label: 'PAYE', value: fmt.format(asDouble(payslip['tax_amount'], 0)))),
+              Expanded(child: _PayItem(label: 'Deductions', value: fmt.format(asDouble(payslip['total_deductions'], 0)))),
             ],
           ),
         ],

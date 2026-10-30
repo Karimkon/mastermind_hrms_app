@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/api_service.dart';
 import '../../core/constants/api_constants.dart';
+import '../../core/services/json_num.dart';
 
 final _clientRecruitmentProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
   try {
@@ -67,7 +68,7 @@ class _CandidateReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final score = (candidate['score'] as num?)?.toInt() ?? 0;
+    final score = asInt(candidate['score'], 0);
     final scoreColor = score >= 80 ? AppColors.success : score >= 60 ? AppColors.warning : AppColors.error;
 
     return Container(

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/json_num.dart';
 
 class AmSalaryPaymentsScreen extends ConsumerStatefulWidget {
   const AmSalaryPaymentsScreen({super.key});
@@ -86,9 +87,9 @@ class _AmSalaryPaymentsScreenState extends ConsumerState<AmSalaryPaymentsScreen>
     }
   }
 
-  double get _totalGross => _payments.fold(0, (a, p) => a + ((p['gross_salary'] as num?)?.toDouble() ?? 0));
-  double get _totalDed   => _payments.fold(0, (a, p) => a + ((p['total_deductions'] as num?)?.toDouble() ?? 0));
-  double get _totalNet   => _payments.fold(0, (a, p) => a + ((p['net_salary'] as num?)?.toDouble() ?? 0));
+  double get _totalGross => _payments.fold(0, (a, p) => a + (asDouble(p['gross_salary'], 0)));
+  double get _totalDed   => _payments.fold(0, (a, p) => a + (asDouble(p['total_deductions'], 0)));
+  double get _totalNet   => _payments.fold(0, (a, p) => a + (asDouble(p['net_salary'], 0)));
 
   @override
   Widget build(BuildContext context) {
@@ -269,14 +270,14 @@ class _PaymentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final net   = (payment['net_salary']       as num?)?.toDouble() ?? 0;
-    final gross = (payment['gross_salary']      as num?)?.toDouble() ?? 0;
-    final basic = (payment['basic_salary']      as num?)?.toDouble() ?? 0;
-    final allow = (payment['allowances']        as num?)?.toDouble() ?? 0;
-    final paye  = (payment['paye_tax']          as num?)?.toDouble() ?? 0;
-    final nssf  = (payment['nssf']              as num?)?.toDouble() ?? 0;
-    final other = (payment['other_deductions']  as num?)?.toDouble() ?? 0;
-    final ded   = (payment['total_deductions']  as num?)?.toDouble() ?? 0;
+    final net   = asDouble(payment['net_salary']      , 0);
+    final gross = asDouble(payment['gross_salary']     , 0);
+    final basic = asDouble(payment['basic_salary']     , 0);
+    final allow = asDouble(payment['allowances']       , 0);
+    final paye  = asDouble(payment['paye_tax']         , 0);
+    final nssf  = asDouble(payment['nssf']             , 0);
+    final other = asDouble(payment['other_deductions'] , 0);
+    final ded   = asDouble(payment['total_deductions'] , 0);
     final method = (payment['payment_method'] as String? ?? '').replaceAll('_', ' ');
 
     return Container(
@@ -493,7 +494,7 @@ class _PaymentFormSheetState extends State<_PaymentFormSheet> {
                         setState(() => _empId = v);
                         if (v != null) {
                           final emp = widget.employees.firstWhere((e) => e['id'] == v, orElse: () => {});
-                          final salary = (emp['basic_salary'] as num?)?.toDouble() ?? 0;
+                          final salary = asDouble(emp['basic_salary'], 0);
                           if (salary > 0) _basic.text = salary.toStringAsFixed(0);
                         }
                       },

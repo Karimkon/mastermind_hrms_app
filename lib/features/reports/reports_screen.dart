@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/json_num.dart';
 
 final _reportProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, endpoint) async {
   try {
@@ -114,8 +115,8 @@ class ReportsScreen extends ConsumerWidget {
     final fmt = NumberFormat('#,##0', 'en');
     return [
       _Stat('Employees', '${d['employee_count'] ?? '-'}'),
-      _Stat('Gross', 'UGX ${fmt.format((d['total_gross'] as num?)?.toDouble() ?? 0)}'),
-      _Stat('Net',   'UGX ${fmt.format((d['total_net']   as num?)?.toDouble() ?? 0)}'),
+      _Stat('Gross', 'UGX ${fmt.format(asDouble(d['total_gross'], 0))}'),
+      _Stat('Net',   'UGX ${fmt.format(asDouble(d['total_net']  , 0))}'),
     ];
   }
 

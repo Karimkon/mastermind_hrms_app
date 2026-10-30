@@ -1,3 +1,4 @@
+import '../services/json_num.dart';
 class JobPostingModel {
   final int id;
   final String title;
@@ -45,8 +46,8 @@ class JobPostingModel {
         location: j['location'],
         description: j['description'],
         requirements: j['requirements'],
-        salaryMin: (j['salary_min'] as num?)?.toDouble(),
-        salaryMax: (j['salary_max'] as num?)?.toDouble(),
+        salaryMin: asDoubleOrNull(j['salary_min']),
+        salaryMax: asDoubleOrNull(j['salary_max']),
         vacancies: j['vacancies'],
         deadline: j['deadline'],
         status: j['status'] ?? 'open',
@@ -97,7 +98,7 @@ class CandidateModel {
         status: j['status'] ?? 'new',
         notes: j['notes'],
         resumeUrl: j['resume_url'],
-        offerAmount: (j['offer_amount'] as num?)?.toDouble(),
+        offerAmount: asDoubleOrNull(j['offer_amount']),
         clientShortlistStatus: j['client_shortlist_status'],
         createdAt: j['created_at'],
       );

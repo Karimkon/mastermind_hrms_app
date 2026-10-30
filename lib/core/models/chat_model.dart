@@ -1,6 +1,8 @@
 /// Staff messaging: the same threads the web panel shows.
 library;
 
+import '../services/json_num.dart';
+
 /// How far a message of your own has got.
 enum Receipt { sent, delivered, read }
 
@@ -20,8 +22,8 @@ class ChatMarks {
   factory ChatMarks.fromJson(Map<String, dynamic>? j) {
     if (j == null) return const ChatMarks.none();
     return ChatMarks(
-      delivered: (j['delivered'] as num?)?.toInt(),
-      read: (j['read'] as num?)?.toInt(),
+      delivered: asIntOrNull(j['delivered']),
+      read: asIntOrNull(j['read']),
     );
   }
 
@@ -84,8 +86,8 @@ class ChatConversation {
         avatar: j['avatar'] as String?,
         preview: j['preview'] as String?,
         at: j['at'] as String?,
-        unread: (j['unread'] as num?)?.toInt() ?? 0,
-        members: (j['members'] as num?)?.toInt() ?? 0,
+        unread: asInt(j['unread'], 0),
+        members: asInt(j['members'], 0),
       );
 }
 
@@ -146,7 +148,7 @@ class ChatMessage {
   factory ChatMessage.fromJson(Map<String, dynamic> j) => ChatMessage(
         id: (j['id'] as num).toInt(),
         mine: j['mine'] == true,
-        ts: (j['ts'] as num?)?.toInt(),
+        ts: asIntOrNull(j['ts']),
         sender: j['sender'] as String?,
         avatar: j['avatar'] as String?,
         type: j['type'] as String? ?? 'text',
@@ -155,7 +157,7 @@ class ChatMessage {
         fileName: j['file_name'] as String?,
         fileSize: j['file_size'] as String?,
         mime: j['mime'] as String?,
-        duration: (j['duration'] as num?)?.toInt(),
+        duration: asIntOrNull(j['duration']),
         at: j['at'] as String? ?? '',
         on: j['on'] as String? ?? '',
       );

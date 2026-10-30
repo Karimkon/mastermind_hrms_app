@@ -3,6 +3,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/training_provider.dart';
+import '../../core/services/json_num.dart';
 
 class TrainingScreen extends ConsumerWidget {
   const TrainingScreen({super.key});
@@ -131,7 +132,7 @@ class _CourseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final enrolled = course['is_enrolled'] as bool? ?? false;
-    final progress = (course['progress'] as num?)?.toInt() ?? 0;
+    final progress = asInt(course['progress'], 0);
 
     const colors = [
       [AppColors.primary, AppColors.primaryDark],
@@ -215,7 +216,7 @@ class _CourseCard extends StatelessWidget {
   }
 
   void _showProgressDialog(BuildContext context, WidgetRef ref, Map<String, dynamic> course, Color color) {
-    int progress = (course['progress'] as num?)?.toInt() ?? 0;
+    int progress = asInt(course['progress'], 0);
     final courseId = course['id'] as int? ?? 0;
 
     showDialog(

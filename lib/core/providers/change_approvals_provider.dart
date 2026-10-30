@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/api_constants.dart';
 import '../models/change_approval_model.dart';
 import '../services/api_service.dart';
+import '../services/json_num.dart';
 
 String _message(DioException e, String fallback) {
   final body = e.response?.data;
@@ -26,7 +27,7 @@ final changeApprovalsProvider =
 
     return ChangeApprovalsData(
       changes: rows.map((j) => ChangeApprovalModel.fromJson(Map<String, dynamic>.from(j))).toList(),
-      pendingCount: (d['pending_count'] as num?)?.toInt() ?? 0,
+      pendingCount: asInt(d['pending_count'], 0),
       status: d['status'] as String? ?? status,
     );
   } on DioException catch (e) {

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/configuration_provider.dart';
+import '../../core/services/json_num.dart';
 
 /// Working shifts and how much lateness each forgives.
 ///
@@ -234,7 +235,7 @@ class _ShiftCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final grace = (shift['grace_minutes'] as num?)?.toInt() ?? 0;
+    final grace = asInt(shift['grace_minutes'], 0);
     final overnight = shift['crosses_midnight'] == true;
 
     return Container(

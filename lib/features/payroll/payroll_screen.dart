@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/payroll_provider.dart';
+import '../../core/services/json_num.dart';
 
 /// The one approval stage a run is currently at, or null if it is not waiting on
 /// an approval at all.
@@ -141,8 +142,8 @@ class _PayrollRunCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final status = run['status'] as String? ?? 'draft';
     final fmt = NumberFormat('#,##0', 'en');
-    final totalGross = (run['total_gross'] as num?)?.toDouble() ?? 0;
-    final totalNet   = (run['total_net']   as num?)?.toDouble() ?? 0;
+    final totalGross = asDouble(run['total_gross'], 0);
+    final totalNet   = asDouble(run['total_net']  , 0);
 
     final (statusBg, statusFg) = switch (status) {
       'approved' || 'paid' => (AppColors.successLight, AppColors.success),
@@ -282,8 +283,8 @@ class _PayrollRunCard extends StatelessWidget {
 
   void _showExportInfo(BuildContext context, Map<String, dynamic> run) {
     final fmt = NumberFormat('#,##0', 'en');
-    final gross = (run['total_gross'] as num?)?.toDouble() ?? 0;
-    final net   = (run['total_net']   as num?)?.toDouble() ?? 0;
+    final gross = asDouble(run['total_gross'], 0);
+    final net   = asDouble(run['total_net']  , 0);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -385,10 +386,10 @@ class _PayslipsSheet extends ConsumerWidget {
                         ),
                       ),
                       title: Text(p['employee'] as String? ?? '', style: const TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: Text('Gross: UGX ${fmt.format((p['gross_pay'] as num?)?.toDouble() ?? 0)}',
+                      subtitle: Text('Gross: UGX ${fmt.format(asDouble(p['gross_pay'], 0))}',
                           style: const TextStyle(fontSize: 12)),
                       trailing: Text(
-                        'UGX ${fmt.format((p['net_pay'] as num?)?.toDouble() ?? 0)}',
+                        'UGX ${fmt.format(asDouble(p['net_pay'], 0))}',
                         style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.success, fontSize: 13),
                       ),
                     );

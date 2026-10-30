@@ -9,6 +9,7 @@ import '../../core/providers/attendance_provider.dart';
 import '../../core/models/attendance_model.dart';
 import '../../core/services/location_disclosure.dart';
 import '../../core/navigation/app_nav.dart';
+import 'office_clock_button.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -25,7 +26,13 @@ class DashboardScreen extends ConsumerWidget {
         children: [
           // Greeting + Clock In (for employees)
           _GreetingCard(user: user),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
+
+          // Head-office clock-in, straight after the greeting. Office-based
+          // staff did this every morning two taps away under Office
+          // Attendance; it belongs on the screen they already open. Shows
+          // itself only when there is something to do - see the widget.
+          OfficeClockButton(user: user),
 
           // Role-specific dashboard content
           dashAsync.when(

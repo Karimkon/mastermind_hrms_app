@@ -1,3 +1,4 @@
+import '../services/json_num.dart';
 class AmVisitSessionModel {
   final int id;
   final int clientId;
@@ -37,12 +38,12 @@ class AmVisitSessionModel {
         siteAddress:    j['site_address'],
         clockedInAt:    DateTime.parse(j['clocked_in_at']),
         clockedOutAt:   j['clocked_out_at'] != null ? DateTime.parse(j['clocked_out_at']) : null,
-        latIn:          (j['lat_in'] as num?)?.toDouble(),
-        lngIn:          (j['lng_in'] as num?)?.toDouble(),
-        latOut:         (j['lat_out'] as num?)?.toDouble(),
-        lngOut:         (j['lng_out'] as num?)?.toDouble(),
+        latIn:          asDoubleOrNull(j['lat_in']),
+        lngIn:          asDoubleOrNull(j['lng_in']),
+        latOut:         asDoubleOrNull(j['lat_out']),
+        lngOut:         asDoubleOrNull(j['lng_out']),
         notes:          j['notes'],
-        durationHours:  (j['duration_hours'] as num?)?.toDouble(),
+        durationHours:  asDoubleOrNull(j['duration_hours']),
         isActive:       j['is_active'] ?? false,
       );
 
@@ -77,7 +78,7 @@ class WorkSiteModel {
         name:   j['name'] ?? 'Work site',
         lat:    (j['lat'] as num).toDouble(),
         lng:    (j['lng'] as num).toDouble(),
-        radius: (j['radius'] as num?)?.toInt() ?? 100,
+        radius: asInt(j['radius'], 100),
       );
 }
 
@@ -118,8 +119,8 @@ class AmVisitClientModel {
         id:               j['id'],
         companyName:      j['company_name'] ?? '',
         workSiteAddress:  j['work_site_address'],
-        workSiteLat:      (j['work_site_lat'] as num?)?.toDouble(),
-        workSiteLng:      (j['work_site_lng'] as num?)?.toDouble(),
+        workSiteLat:      asDoubleOrNull(j['work_site_lat']),
+        workSiteLng:      asDoubleOrNull(j['work_site_lng']),
         geoFenceRadius:   j['geo_fence_radius'] as int?,
         // Absent on an older server, which simply means no fence data and
         // therefore no distance shown - not a crash.

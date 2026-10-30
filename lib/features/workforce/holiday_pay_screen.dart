@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/workforce_provider.dart';
+import '../../core/services/json_num.dart';
 
 /// Public holiday pay for a year.
 ///
@@ -87,7 +88,7 @@ class _HolidayPayScreenState extends ConsumerState<HolidayPayScreen> {
 
   Widget _holidayCard(Map<String, dynamic> h, {required bool canDecide}) {
     final decisions = List<Map<String, dynamic>>.from(h['decisions'] ?? []);
-    final workedCount = (h['worked_count'] as num?)?.toInt() ?? 0;
+    final workedCount = asInt(h['worked_count'], 0);
 
     // A single decision with no client is the "everybody" case; anything else is
     // per-client and cannot be summarised in one word.

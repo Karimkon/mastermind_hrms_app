@@ -1,3 +1,4 @@
+import '../services/json_num.dart';
 /// One field of a proposed change: what it was, what it would become, and
 /// whether somebody else has moved it since the request was made.
 class ChangeDiffRow {
@@ -93,7 +94,7 @@ class ChangeApprovalModel {
         reviewedBy: j['reviewed_by'] as String?,
         reviewedAt: j['reviewed_at'] as String?,
         reviewNote: j['review_note'] as String?,
-        fieldCount: (j['field_count'] as num?)?.toInt() ?? 0,
+        fieldCount: asInt(j['field_count'], 0),
         createdAt: j['created_at'] as String?,
         diff: (j['diff'] as List?)
                 ?.map((d) => ChangeDiffRow.fromJson(Map<String, dynamic>.from(d)))

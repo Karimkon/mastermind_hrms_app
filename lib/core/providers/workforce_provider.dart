@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/api_service.dart';
+import '../services/json_num.dart';
 
 /// Holiday pay, onboarding and PIPs.
 ///
@@ -69,8 +70,8 @@ final onboardingProvider = FutureProvider<OnboardingList>((ref) async {
 
   return OnboardingList(
     tasks: _list(body),
-    done: (summary['done'] as num?)?.toInt() ?? 0,
-    total: (summary['total'] as num?)?.toInt() ?? 0,
+    done: asInt(summary['done'], 0),
+    total: asInt(summary['total'], 0),
   );
 });
 

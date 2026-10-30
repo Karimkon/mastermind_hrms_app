@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/appraisal_provider.dart';
 import '../../widgets/status_badge.dart';
+import '../../core/services/json_num.dart';
 
 /// One appraisal card, and the one thing this person can do with it.
 ///
@@ -178,8 +179,8 @@ class _AppraisalDetailScreenState extends ConsumerState<AppraisalDetailScreen> {
   }
 
   Widget _header(Map<String, dynamic> a) {
-    final percent = (a['overall_percent'] as num?)?.toDouble();
-    final unrated = (a['unrated_count'] as num?)?.toInt() ?? 0;
+    final percent = asDoubleOrNull(a['overall_percent']);
+    final unrated = asInt(a['unrated_count'], 0);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -650,7 +651,7 @@ class _KpiTile extends StatelessWidget {
                 child: Text(kpi['kra_name']?.toString() ?? '',
                     style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
               ),
-              Text('${(kpi['weightage'] as num?)?.toStringAsFixed(0) ?? '0'}%',
+              Text('${asDouble(kpi['weightage']).toStringAsFixed(0)}%',
                   style: const TextStyle(
                       fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.textMuted)),
             ],

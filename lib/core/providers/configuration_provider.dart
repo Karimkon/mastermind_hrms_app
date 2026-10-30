@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/api_service.dart';
+import '../services/json_num.dart';
 
 /// Shifts, salary grades and salary components.
 ///
@@ -158,7 +159,7 @@ final publicHolidaysProvider =
   return HolidayYear(
     holidays: parsed.items,
     canManage: body is Map && body['can_manage'] == true,
-    missingFixed: body is Map ? ((body['missing_fixed'] as num?)?.toInt() ?? 0) : 0,
+    missingFixed: body is Map ? (asInt(body['missing_fixed'], 0)) : 0,
   );
 });
 
@@ -192,7 +193,7 @@ class HolidayCalendarActions extends Notifier<AsyncValue<void>> {
       state = const AsyncData(null);
       final data = (res.data as Map)['data'] as Map;
       return (
-        added: (data['added'] as num?)?.toInt() ?? 0,
+        added: asInt(data['added'], 0),
         note: data['note']?.toString() ?? '',
         error: null,
       );

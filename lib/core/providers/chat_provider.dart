@@ -8,6 +8,7 @@ import '../constants/api_constants.dart';
 import '../models/chat_model.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
+import '../services/json_num.dart';
 
 /// The list of threads, and the unread badge.
 class ChatListState {
@@ -29,7 +30,7 @@ class ChatListNotifier extends AsyncNotifier<ChatListState> {
       conversations: ((body['conversations'] as List?) ?? const [])
           .map((j) => ChatConversation.fromJson(Map<String, dynamic>.from(j)))
           .toList(),
-      unread: (body['unread'] as num?)?.toInt() ?? 0,
+      unread: asInt(body['unread'], 0),
     );
   }
 
@@ -45,7 +46,7 @@ final chatListProvider =
 final chatUnreadProvider = FutureProvider.autoDispose<int>((ref) async {
   try {
     final res = await ApiService.get(ApiConstants.chatUnread);
-    return ((res.data as Map)['unread'] as num?)?.toInt() ?? 0;
+    return asInt((res.data as Map)['unread']);
   } catch (_) {
     return 0;
   }
@@ -252,7 +253,7 @@ final chatContactsProvider =
 Future<int?> openDirectThread(int userId) async {
   try {
     final res = await ApiService.post('${ApiConstants.chat}/with/$userId');
-    return ((res.data as Map)['conversation_id'] as num?)?.toInt();
+    return asIntOrNull((res.data as Map)['conversation_id']);
   } catch (_) {
     return null;
   }

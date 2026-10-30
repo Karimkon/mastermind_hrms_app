@@ -1,3 +1,4 @@
+import '../services/json_num.dart';
 /// A goal set for an employee, and how far along it is.
 class GoalModel {
   final int id;
@@ -49,12 +50,12 @@ class GoalModel {
         title: j['title'] as String? ?? '',
         description: j['description'] as String?,
         targetDate: j['target_date'] as String?,
-        weight: (j['weight'] as num?)?.toDouble() ?? 0,
-        progress: (j['progress'] as num?)?.toInt() ?? 0,
+        weight: asDouble(j['weight'], 0),
+        progress: asInt(j['progress'], 0),
         status: j['status'] as String? ?? 'not_started',
         cycle: j['cycle'] as String?,
         setByMe: j['set_by_me'] as bool? ?? false,
-        attachments: (j['attachments'] as num?)?.toInt() ?? 0,
+        attachments: asInt(j['attachments'], 0),
       );
 }
 
@@ -72,10 +73,10 @@ class GoalSummary {
   });
 
   factory GoalSummary.fromJson(Map<String, dynamic>? j) => GoalSummary(
-        total: (j?['total'] as num?)?.toInt() ?? 0,
-        inProgress: (j?['in_progress'] as num?)?.toInt() ?? 0,
-        achieved: (j?['achieved'] as num?)?.toInt() ?? 0,
-        progress: (j?['progress'] as num?)?.toInt() ?? 0,
+        total: asInt(j?['total'], 0),
+        inProgress: asInt(j?['in_progress'], 0),
+        achieved: asInt(j?['achieved'], 0),
+        progress: asInt(j?['progress'], 0),
       );
 }
 

@@ -3,6 +3,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/performance_provider.dart';
+import '../../core/services/json_num.dart';
 
 class PerformanceScreen extends ConsumerWidget {
   const PerformanceScreen({super.key});
@@ -106,7 +107,7 @@ class _GoalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progress = (goal['progress'] as num?)?.toInt() ?? 0;
+    final progress = asInt(goal['progress'], 0);
     final status = goal['status'] as String? ?? 'in_progress';
 
     final (statusBg, statusFg) = switch (status) {
@@ -175,9 +176,9 @@ class _KpiCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final target = (kpi['target'] as num?)?.toDouble() ?? 0;
-    final actual = (kpi['actual'] as num?)?.toDouble() ?? 0;
-    final score = (kpi['score'] as num?)?.toInt() ?? 0;
+    final target = asDouble(kpi['target'], 0);
+    final actual = asDouble(kpi['actual'], 0);
+    final score = asInt(kpi['score'], 0);
     final pct = target > 0 ? (actual / target).clamp(0.0, 1.0) : 0.0;
 
     return Container(
