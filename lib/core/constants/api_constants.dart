@@ -19,6 +19,12 @@ class ApiConstants {
   static const String profilePassword = '/profile/password';
   static const String profileAvatar = '/profile/avatar';
 
+  // Field supervisor. The module existed only on the web until now:
+  // nine Blade screens and not one API route.
+  static const String supervisorDashboard  = '/supervisor/dashboard';
+  static const String supervisorWorkforce  = '/supervisor/workforce';
+  static const String supervisorMyRequests = '/supervisor/my-requests';
+
   // Employees
   static const String employees = '/employees';
   static const String departments = '/departments';

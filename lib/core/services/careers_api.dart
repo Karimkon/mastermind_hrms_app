@@ -63,6 +63,28 @@ class CareersApi {
     }
   }
 
+  /// What deleting the account will do. Read from the server so the promise
+  /// the screen makes cannot go stale in a shipped build.
+  static Future<Map<String, dynamic>> deletionTerms() =>
+      _get('/careers/account/deletion-terms');
+
+  /// Delete the account for good. The password is the confirmation.
+  ///
+  /// The local token is cleared only after the server says the account is
+  /// gone: clearing it first would sign somebody out of an account that still
+  /// exists, which looks identical and is not the same thing at all.
+  static Future<String> deleteAccount(String password) async {
+    try {
+      final r = await _dio.delete('/careers/account', data: {'password': password});
+      await clearToken();
+      return (r.data is Map && (r.data as Map)['message'] != null)
+          ? (r.data as Map)['message'].toString()
+          : 'Your account has been deleted.';
+    } on DioException catch (e) {
+      throw ApiException.fromDio(e);
+    }
+  }
+
   static Future<void> logout() async {
     // Drop the token locally whatever the server says. A seeker tapping sign
     // out must end up signed out even with no signal.

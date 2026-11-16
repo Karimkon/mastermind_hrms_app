@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/widgets/ui.dart';
 import '../../core/models/probation_model.dart';
 import '../../core/providers/probation_provider.dart';
 import '../../core/services/text_safe.dart';
@@ -226,7 +227,8 @@ class _StatsRow extends StatelessWidget {
   const _StatsRow({required this.stats});
 
   @override
-  Widget build(BuildContext context) => Row(children: [
+  // Four figures will not fit across a phone; two rows of two will.
+  Widget build(BuildContext context) => CardGrid(minItemWidth: 150, gap: 10, children: [
     Expanded(child: _StatCard(label: 'On Probation', value: stats.onProbation, color: AppColors.primary)),
     const SizedBox(width: 10),
     Expanded(child: _StatCard(label: 'Passed', value: stats.passed, color: AppColors.success)),

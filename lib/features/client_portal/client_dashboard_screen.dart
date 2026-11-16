@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/widgets/ui.dart';
 import '../../core/providers/dashboard_provider.dart';
 import '../../core/services/text_safe.dart';
 
@@ -23,7 +24,8 @@ class ClientDashboardScreen extends ConsumerWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
+              CardGrid(
+                minItemWidth: 190,
                 children: [
                   _StatCard(label: 'Leave Approvals Pending', value: '${pendingLeaves.length}', icon: Icons.event_busy_rounded, color: AppColors.warning, bg: AppColors.warningLight),
                   const SizedBox(width: 16),
@@ -66,7 +68,9 @@ class _StatCard extends StatelessWidget {
   const _StatCard({required this.label, required this.value, required this.icon, required this.color, required this.bg});
 
   @override
-  Widget build(BuildContext context) => Expanded(child: Container(
+  // The grid above sets the width; this used to insist on being a
+  // flex child and so could never stack on a phone.
+  Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(20),
     decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.cardBorder)),
     child: Row(children: [
@@ -77,7 +81,7 @@ class _StatCard extends StatelessWidget {
         Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
       ]),
     ]),
-  ));
+  );
 }
 
 class _Card extends StatelessWidget {

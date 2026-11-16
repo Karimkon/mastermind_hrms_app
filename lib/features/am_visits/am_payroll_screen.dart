@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/widgets/ui.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/json_num.dart';
@@ -147,7 +148,9 @@ class _AmPayrollScreenState extends ConsumerState<AmPayrollScreen> {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-      child: Row(
+      child: CardGrid(
+        minItemWidth: 150,
+        gap: 10,
         children: [
           _SummaryCard(label: 'Runs', value: '${_runs.length}', color: AppColors.primary),
           const SizedBox(width: 10),
@@ -516,10 +519,12 @@ class _SummaryCard extends StatelessWidget {
   final Color color;
   const _SummaryCard({required this.label, required this.value, required this.color});
 
+  // Not Expanded: CardGrid decides the width, so this can also be a
+  // full-width row on a phone. A net total runs to "UGX 12,345,678"
+  // and had about 100pt to say it in.
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
+    return Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
         decoration: BoxDecoration(color: AppColors.cardBg, borderRadius: BorderRadius.circular(10), border: Border.all(color: AppColors.cardBorder)),
         child: Column(
@@ -529,7 +534,6 @@ class _SummaryCard extends StatelessWidget {
             Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
           ],
         ),
-      ),
     );
   }
 }

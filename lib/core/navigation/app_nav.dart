@@ -41,6 +41,8 @@ class AppNav {
     '/recruitment/jobs',
     '/recruitment/candidates',
     '/recruitment/interviews',
+    '/supervisor',
+    '/supervisor/workforce',
   };
 
   static bool isTab(String path) => tabPaths.contains(path.split('?').first);

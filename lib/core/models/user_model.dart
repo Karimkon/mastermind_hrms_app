@@ -46,6 +46,14 @@ class UserModel {
   bool get isPayroll        => hasRole('payroll-officer');
   bool get isRecruiter      => hasRole('recruiter');
   bool get isAccountManager => hasRole('account-manager');
+
+  /// Posted to a client site to watch the workforce placed there.
+  ///
+  /// The role grants the menu; a dated posting grants the site. Somebody
+  /// holding this role with no current posting sees the screens and is
+  /// told they have no posting, which is the honest answer - an empty
+  /// list would read as "nobody is here today".
+  bool get isFieldSupervisor => hasRole('field-supervisor');
   bool get canSeeBsc        => isAdmin || isManager || isAccountManager || isEmployee;
   bool get canSeeProbation  => isAdmin;
 

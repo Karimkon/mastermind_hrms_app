@@ -63,6 +63,10 @@ import '../../features/careers/careers_application_screen.dart';
 import '../../features/careers/careers_track_screen.dart';
 import '../../features/careers/careers_account_screen.dart';
 import '../../features/careers/careers_notifications_screen.dart';
+import '../../features/supervisor/supervisor_dashboard_screen.dart';
+import '../../features/supervisor/supervisor_workforce_screen.dart';
+import '../../features/supervisor/supervisor_employee_screen.dart';
+import '../../features/supervisor/supervisor_requests_screen.dart';
 
 // A ChangeNotifier that fires whenever auth state changes.
 // GoRouter uses this via refreshListenable to re-evaluate redirects.
@@ -200,6 +204,18 @@ final routerProvider = Provider<GoRouter>((ref) {
               title: st.uri.queryParameters['title'],
             ),
           ),
+          // Field supervisor. The module was web-only until now, so a
+          // supervisor opening the app got the generic employee screens.
+          GoRoute(path: '/supervisor',           builder: (_, _) => const SupervisorDashboardScreen()),
+          GoRoute(path: '/supervisor/workforce', builder: (_, _) => const SupervisorWorkforceScreen()),
+          GoRoute(path: '/supervisor/requests',  builder: (_, _) => const SupervisorRequestsScreen()),
+          GoRoute(
+            path: '/supervisor/workforce/:id',
+            builder: (_, state) => SupervisorEmployeeScreen(
+              employeeId: int.parse(state.pathParameters['id']!),
+            ),
+          ),
+
           GoRoute(path: '/am-visits',            builder: (_, _) => const AmVisitsScreen()),
           // Office presence register — separate stream from site visits above,
           // and from /attendance which is the payroll-affecting one.

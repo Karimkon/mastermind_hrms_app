@@ -201,14 +201,19 @@ class AppChip extends StatelessWidget {
               Icon(icon, size: 11, color: tone),
               const SizedBox(width: 4),
             ],
-            Text(
-              label,
-              softWrap: false,
-              overflow: TextOverflow.fade,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: tone,
+            // Flexible, so a long status can give ground on a narrow
+            // screen instead of running off it. "Pending supervisor
+            // approval" overflowed a 320pt phone by 34pt without this.
+            Flexible(
+              child: Text(
+                label,
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: tone,
+                ),
               ),
             ),
           ],
@@ -290,44 +295,64 @@ class PageTitle extends StatelessWidget {
   const PageTitle(this.title, {super.key, this.subtitle, this.action});
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: AppSpace.xl),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                      height: 1.2,
-                      letterSpacing: -0.4,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: AppSpace.xs),
-                    Text(
-                      subtitle!,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        height: 1.4,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            if (action != null) ...[const SizedBox(width: AppSpace.md), action!],
-          ],
+  Widget build(BuildContext context) {
+    // A 22pt heading and a real button do not fit on one line at 320pt;
+    // it overflowed by 1.5pt, which is enough for the striped bars.
+    // Under this width the action goes underneath instead.
+    final narrow = MediaQuery.sizeOf(context).width < 360;
+
+    final heading = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            height: 1.2,
+            letterSpacing: -0.4,
+            color: AppColors.textPrimary,
+          ),
         ),
-      );
+        if (subtitle != null) ...[
+          const SizedBox(height: AppSpace.xs),
+          Text(
+            subtitle!,
+            style: const TextStyle(
+              fontSize: 13,
+              height: 1.4,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ],
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpace.xl),
+      child: action == null
+          ? heading
+          : narrow
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    heading,
+                    const SizedBox(height: AppSpace.md),
+                    action!,
+                  ],
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: heading),
+                    const SizedBox(width: AppSpace.md),
+                    Flexible(child: action!),
+                  ],
+                ),
+    );
+  }
 }
 
 /// The shimmer placeholder, one shape for the whole app.
@@ -352,4 +377,138 @@ class SkeletonBox extends StatelessWidget {
           borderRadius: BorderRadius.circular(radius),
         ),
       );
+}
+
+/// A row of equal columns that reflows instead of overflowing.
+///
+/// WHY THIS EXISTS
+///
+/// Most of this app's screens were laid out for a desktop window and then
+/// shipped to phones unchanged. The pattern is always the same:
+///
+///     Row(children: [
+///       Expanded(child: card), SizedBox(width: 16), Expanded(child: card),
+///     ])
+///
+/// A Row divides whatever width it is given, however little that is. Three
+/// Expanded columns inside a 360pt phone leave roughly 66pt of text each -
+/// narrower than the word "Balances" - so headings rendered one letter per
+/// line and the buttons under them spilled out of their cards.
+///
+/// CardGrid takes the SAME children a Row took, Expanded wrappers and gap
+/// SizedBoxes included, so converting a screen is a one-word change at the
+/// call site. It then lays them out in as many columns as actually fit,
+/// wrapping onto further rows, and falls to a single column on a phone.
+///
+/// [minItemWidth] is the narrowest a column may be before it is better to
+/// use fewer columns. The default suits a card with a heading and a button;
+/// pass something smaller for a row of figures.
+class CardGrid extends StatelessWidget {
+  final List<Widget> children;
+  final double minItemWidth;
+  final double gap;
+
+  /// Whether a last row with fewer items than the rest stretches to fill the
+  /// width. False keeps a lone trailing card the same width as the others,
+  /// which reads better in a grid of figures.
+  final bool stretchLastRow;
+
+  const CardGrid({
+    super.key,
+    required this.children,
+    this.minItemWidth = 230,
+    this.gap = AppSpace.lg,
+    this.stretchLastRow = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // The gap SizedBoxes are the caller's spacing between columns. This
+    // widget decides the spacing itself, so they are dropped here and
+    // reinstated as real gaps below.
+    final items = _unwrap(children);
+
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return LayoutBuilder(builder: (context, constraints) {
+      final width = constraints.maxWidth;
+
+      // How many columns of at least minItemWidth fit, counting the gaps
+      // between them. At least one, never more than there are items.
+      final fit = ((width + gap) / (minItemWidth + gap)).floor();
+      final perRow = fit.clamp(1, items.length);
+
+      if (perRow == 1) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < items.length; i++) ...[
+              if (i > 0) SizedBox(height: gap),
+              items[i],
+            ],
+          ],
+        );
+      }
+
+      final rows = <Widget>[];
+
+      for (var start = 0; start < items.length; start += perRow) {
+        final end = (start + perRow) > items.length ? items.length : start + perRow;
+        final slice = items.sublist(start, end);
+        final isLast = end >= items.length;
+
+        if (rows.isNotEmpty) rows.add(SizedBox(height: gap));
+
+        rows.add(Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var j = 0; j < perRow; j++) ...[
+              if (j > 0) SizedBox(width: gap),
+              if (j < slice.length)
+                Expanded(child: slice[j])
+              else if (!(isLast && stretchLastRow))
+                const Expanded(child: SizedBox())
+              else
+                const SizedBox.shrink(),
+            ],
+          ],
+        ));
+      }
+
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: rows);
+    });
+  }
+
+  /// Strip the flex wrappers and spacing the caller inherited from the Row
+  /// this replaces. An Expanded outside a flex throws; a gap SizedBox would
+  /// become a stray empty cell.
+  static List<Widget> _unwrap(List<Widget> children) {
+    final out = <Widget>[];
+
+    for (final child in children) {
+      // A column gap, as written at the call site: a bare SizedBox with
+      // a width and nothing else. Anything carrying a key, a child or a
+      // height is somebody's actual content and is kept - an earlier
+      // version tested `width > 0 || height > 0` and silently swallowed
+      // fixed-height cards.
+      if (child is SizedBox &&
+          child.child == null &&
+          child.key == null &&
+          child.height == null &&
+          (child.width ?? 0) > 0) {
+        continue;
+      }
+      if (child is Expanded) {
+        out.add(child.child);
+        continue;
+      }
+      if (child is Flexible) {
+        out.add(child.child);
+        continue;
+      }
+      out.add(child);
+    }
+
+    return out;
+  }
 }

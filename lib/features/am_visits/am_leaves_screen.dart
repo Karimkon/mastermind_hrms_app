@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/widgets/ui.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/services/api_service.dart';
 
@@ -377,7 +378,9 @@ class _LeaveCard extends StatelessWidget {
             const Divider(height: 1, color: AppColors.divider),
             const SizedBox(height: 10),
             // Leave details grid
-            Row(
+            CardGrid(
+              minItemWidth: 150,
+              gap: 16,
               children: [
                 _DetailItem(icon: Icons.category_rounded, label: 'Type', value: leave['leave_type'] ?? '—'),
                 const SizedBox(width: 16),
@@ -386,7 +389,9 @@ class _LeaveCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Row(
+            CardGrid(
+              minItemWidth: 150,
+              gap: 16,
               children: [
                 _DetailItem(icon: Icons.timelapse_rounded, label: 'Days', value: days != null ? '$days day${days == 1 ? '' : 's'}' : '—'),
                 const SizedBox(width: 16),
@@ -458,25 +463,27 @@ class _DetailItem extends StatelessWidget {
   final String value;
   const _DetailItem({required this.icon, required this.label, required this.value});
 
+  // No Expanded here. CardGrid gives this its width when two items share a
+  // line and lets it be full width when they stack - which is what a period
+  // like "12 Nov 2026 -> 20 Nov 2026" needs on a phone. It used to get about
+  // 150pt and ellipsise away the half the reader wanted.
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, size: 13, color: AppColors.textMuted),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.w500)),
-                Text(value, style: const TextStyle(fontSize: 12, color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
-              ],
-            ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 13, color: AppColors.textMuted),
+        const SizedBox(width: 4),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.w500)),
+              Text(value, style: const TextStyle(fontSize: 12, color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

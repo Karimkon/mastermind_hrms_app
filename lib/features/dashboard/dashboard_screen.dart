@@ -9,6 +9,7 @@ import '../../core/providers/attendance_provider.dart';
 import '../../core/models/attendance_model.dart';
 import '../../core/services/location_disclosure.dart';
 import '../../core/navigation/app_nav.dart';
+import '../../core/widgets/ui.dart';
 import 'office_clock_button.dart';
 import '../../core/services/text_safe.dart';
 
@@ -407,8 +408,7 @@ class _EmployeeDashboard extends StatelessWidget {
         const SizedBox(height: 24),
 
         // 3-column grid
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        CardGrid(
           children: [
             // Leave balances
             Expanded(
@@ -495,8 +495,7 @@ class _EmployeeDashboard extends StatelessWidget {
         const SizedBox(height: 16),
 
         // Training & Meetings row
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        CardGrid(
           children: [
             Expanded(
               child: _DashCard(
@@ -704,8 +703,7 @@ class _AdminDashboard extends StatelessWidget {
             _StatCard(value: 'UGX ${_fmt(stats['monthly_payroll'] ?? 0)}', label: 'Monthly Payroll', icon: Icons.payments_rounded, color: const Color(0xFF8B5CF6), bg: const Color(0xFFF5F3FF)),
           ]),
         const SizedBox(height: 24),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        CardGrid(
           children: [
             Expanded(
               flex: 2,
@@ -809,8 +807,7 @@ class _RecruiterDashboard extends StatelessWidget {
             _StatCard(value: '${stats['offers_pending'] ?? 0}', label: 'Offers Pending', icon: Icons.send_rounded, color: const Color(0xFF8B5CF6), bg: const Color(0xFFF5F3FF)),
           ]),
         const SizedBox(height: 24),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        CardGrid(
           children: [
             Expanded(
               child: _DashCard(
@@ -855,8 +852,7 @@ class _ClientDashboard extends StatelessWidget {
             _StatCard(value: '${pendingCandidates.length}', label: 'Candidates to Review', icon: Icons.person_search_rounded, color: AppColors.primary, bg: AppColors.infoLight),
           ]),
         const SizedBox(height: 24),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        CardGrid(
           children: [
             Expanded(
               child: _DashCard(

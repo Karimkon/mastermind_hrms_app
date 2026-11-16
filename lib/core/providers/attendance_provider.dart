@@ -55,7 +55,11 @@ class AttendanceTodayNotifier extends AsyncNotifier<AttendanceTodayState> {
           : {});
     } on DioException catch (e) {
       final data = e.response?.data;
-      if (data is Map && data['geo_error'] == true) {
+      // off_site, not geo_error: the server has always sent off_site, so
+      // this branch had never once fired and every refusal fell through to
+      // the generic handler below. It still showed the right message, but
+      // the app could not tell a geo-fence refusal from any other failure.
+      if (data is Map && data['off_site'] == true) {
         throw Exception(data['message'] ?? 'You are outside the work site geo-fence.');
       }
       final msg = (data is Map ? data['message'] : null) ?? e.message ?? 'Clock in failed.';
@@ -72,7 +76,11 @@ class AttendanceTodayNotifier extends AsyncNotifier<AttendanceTodayState> {
           : {});
     } on DioException catch (e) {
       final data = e.response?.data;
-      if (data is Map && data['geo_error'] == true) {
+      // off_site, not geo_error: the server has always sent off_site, so
+      // this branch had never once fired and every refusal fell through to
+      // the generic handler below. It still showed the right message, but
+      // the app could not tell a geo-fence refusal from any other failure.
+      if (data is Map && data['off_site'] == true) {
         throw Exception(data['message'] ?? 'You are outside the work site geo-fence.');
       }
       final msg = (data is Map ? data['message'] : null) ?? e.message ?? 'Clock out failed.';

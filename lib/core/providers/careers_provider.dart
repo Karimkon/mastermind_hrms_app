@@ -179,6 +179,17 @@ class CareersNotifier extends StateNotifier<CareersState> {
     await loadJobs();
   }
 
+  /// Delete the account, then leave the app in the state of somebody who
+  /// never had one. Throws if the server refuses, so the screen can say why
+  /// and keep the person signed in — a failed deletion must not look like a
+  /// successful one.
+  Future<String> deleteAccount(String password) async {
+    final message = await CareersApi.deleteAccount(password);
+    state = const CareersState();
+    await loadJobs();
+    return message;
+  }
+
   Future<void> updateProfile(Map<String, dynamic> body) async {
     final data = await CareersApi.updateMe(body);
     state = state.copyWith(

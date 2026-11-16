@@ -130,6 +130,17 @@ class _AppShellState extends ConsumerState<AppShell> with WidgetsBindingObserver
     items.add(_NavItem(icon: Icons.calendar_month_rounded, label: 'Meetings', path: '/meetings', area: 'calendar'));
     items.add(_NavItem(icon: Icons.lightbulb_rounded, label: 'Company Insights', path: '/blog'));
 
+    // The role grants the menu; a dated posting grants the site. Somebody
+    // holding the role with no current posting still sees these and is
+    // told so on the screen - an empty list would read as "nobody is at
+    // work today", which is a different and much more alarming thing.
+    if (user.isFieldSupervisor) {
+      items.add(_NavSectionHeader('MY SITE'));
+      items.add(_NavItem(icon: Icons.insights_rounded, label: 'Site Today', path: '/supervisor'));
+      items.add(_NavItem(icon: Icons.groups_rounded, label: 'My Workforce', path: '/supervisor/workforce'));
+      items.add(_NavItem(icon: Icons.fact_check_rounded, label: 'My Change Requests', path: '/supervisor/requests'));
+    }
+
     if (user.isAccountManager) {
       items.add(_NavSectionHeader('AM TOOLS'));
       items.add(_NavItem(icon: Icons.location_on_rounded, label: 'Site Visits', path: '/am-visits'));
@@ -339,6 +350,20 @@ class _MobileShellState extends ConsumerState<_MobileShell> {
         _BottomNavItem(icon: Icons.person_rounded, label: 'Profile', path: '/profile'),
       ];
     }
+    // Checked before the employee default below, and after client/admin/AM:
+    // a supervisor is also an employee, and their own leave and payslips
+    // still matter - those stay in the drawer, while the bar carries the
+    // job they opened the app to do.
+    if (user.isFieldSupervisor) {
+      return [
+        _BottomNavItem(icon: Icons.dashboard_rounded, label: 'Dashboard', path: '/dashboard'),
+        _BottomNavItem(icon: Icons.insights_rounded, label: 'Site', path: '/supervisor'),
+        _BottomNavItem(icon: Icons.groups_rounded, label: 'Workforce', path: '/supervisor/workforce'),
+        _BottomNavItem(icon: Icons.fingerprint_rounded, label: 'Attendance', path: '/attendance'),
+        _BottomNavItem(icon: Icons.person_rounded, label: 'Profile', path: '/profile'),
+      ];
+    }
+
     if (user.isRecruiter) {
       return [
         _BottomNavItem(icon: Icons.dashboard_rounded, label: 'Dashboard', path: '/dashboard'),
