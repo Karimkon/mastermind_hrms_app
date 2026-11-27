@@ -1,5 +1,6 @@
 import java.util.Properties
 import java.io.FileInputStream
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("com.android.application")
@@ -49,9 +50,9 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-    }
+    // The Kotlin JVM target is set in the `kotlin { }` block below, not here.
+    // `kotlinOptions` was removed in Kotlin 2.4 and is a build failure under
+    // AGP 9.
 
     signingConfigs {
         create("release") {
@@ -83,6 +84,23 @@ android {
             isMinifyEnabled = false
             isShrinkResources = false
         }
+    }
+}
+
+// Kotlin compiles to the same bytecode level as Java above.
+//
+// This is the replacement for the old `kotlinOptions { jvmTarget = ... }`,
+// which Kotlin 2.4 removed. Without it Kotlin defaults to the JDK running
+// Gradle - 21 on this machine - while compileOptions pins Java to 17, and
+// the build stops on "Inconsistent JVM-target compatibility detected for
+// tasks 'compileDebugJavaWithJavac' (17) and 'compileDebugKotlin' (21)".
+//
+// Deliberately 17 rather than raising both to 21: 17 is what the Android
+// plugins in this project are built against, and it is what the other
+// Flutter app on this toolchain uses.
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
     }
 }
 

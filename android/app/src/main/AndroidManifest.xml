@@ -4,7 +4,6 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
 
     <!-- Voice notes in staff messaging. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
@@ -37,13 +36,25 @@
         file to whatever app opens it. This one only ever opens payslip PDFs, so
         audio, video and general storage are removed rather than shipped.
 
-        Images stay: the profile screen picks an avatar.
+        Images used to stay, for the avatar the profile screen picks. They do
+        not any more. Play refused the release on 2026-11-27:
+
+            "Use alternative system pickers for photos / videos. Apps
+             targeting Android 13+ may only request these broad storage
+             permissions if system pickers are technically insufficient."
+
+        They are not insufficient here. image_picker_android declares no media
+        permission at all - it goes through the Android photo picker, which
+        hands back exactly the one image the user chose and needs no grant.
+        Nothing in lib/ asks for a media permission at runtime either, so
+        READ_MEDIA_IMAGES was bought nothing and cost the release.
 
         A permission that is declared and never used is not harmless. It has to be
         justified in Play's data safety form and answered for at review, and
         "a plugin added it" is not an answer worth having to give.
     -->
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" tools:node="remove"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove"/>
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove"/>

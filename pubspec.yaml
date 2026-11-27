@@ -1,7 +1,7 @@
 name: mastermind_hrms_app
 description: "Mastermind Consult Ltd HRMS — mobile and desktop app"
 publish_to: 'none'
-version: 1.5.4+34
+version: 1.5.8+40
 environment:
   sdk: ^3.10.4
 
@@ -35,7 +35,16 @@ dependencies:
   intl: ^0.19.0
 
   # File picker
-  file_picker: ^8.1.0
+  #
+  # 10.x, not 8.x. file_picker 8.3.7 hardcodes `compileSdk 34` in its own
+  # android/build.gradle, so once anything in the tree needed API 36 -
+  # flutter_plugin_android_lifecycle does - the release build failed on
+  # checkReleaseAarMetadata and no setting in this project could move it.
+  # 10.3.8 reads `flutter.compileSdkVersion` instead, so it follows whatever
+  # the app is on. The pickFiles() arguments used here (allowMultiple, type,
+  # allowedExtensions, withData, withReadStream) are unchanged between the
+  # two, so this is a build fix and not an API migration.
+  file_picker: ^10.3.8
   # Camera and gallery for profile photos. file_picker only browses files,
   # so "take a photo" was impossible in the app; image_picker also downscales
   # on the device, which keeps a 48MP photo off the wire entirely.
