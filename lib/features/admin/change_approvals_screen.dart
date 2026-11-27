@@ -5,7 +5,9 @@ import '../../core/constants/app_colors.dart';
 import '../../core/models/change_approval_model.dart';
 import '../../core/providers/change_approvals_provider.dart';
 
-/// HR's queue of changes account managers have proposed.
+/// The queue of proposed changes: HR sees every one, an account manager
+/// sees the ones raised against their own clients (a supervisor's edits,
+/// chiefly) and never one they asked for themselves. The server scopes it.
 ///
 /// Nothing in this queue has happened. Each row is a proposal against a live
 /// record, and the decision needs the field-by-field diff — so the list opens

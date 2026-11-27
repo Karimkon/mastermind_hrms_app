@@ -408,6 +408,39 @@ class _ApplyLeaveDialogState extends ConsumerState<_ApplyLeaveDialog> {
   final _reasonCtrl = TextEditingController();
   bool _loading = false;
 
+  /// Staff this person may apply on behalf of. Empty for most people, and
+  /// the chooser is hidden entirely when it is.
+  List<Map<String, dynamic>> _canApplyFor = const [];
+
+  /// null means "myself", which is what the dialog opens on.
+  int? _subjectId;
+
+  /// Who can be named as covering. A different list from _canApplyFor: cover
+  /// is a colleague who can do the job, not somebody whose leave you may
+  /// file. The web form has asked for this since September and the app never
+  /// did, so every request filed from a phone reached an approver with the
+  /// question blank.
+  List<Map<String, dynamic>> _canCover = const [];
+  int? _coverId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPickers();
+  }
+
+  Future<void> _loadPickers() async {
+    final filing = await LeaveActionsNotifier.filingOptions();
+    final cover = await LeaveActionsNotifier.coverOptions();
+
+    if (!mounted) return;
+
+    setState(() {
+      _canApplyFor = filing;
+      _canCover = cover;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -419,6 +452,31 @@ class _ApplyLeaveDialogState extends ConsumerState<_ApplyLeaveDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Applying for somebody at your site. A supervisor often fills
+              // this in for staff who cannot, and until now the phone could
+              // only ever file for the person holding it.
+              if (_canApplyFor.isNotEmpty) ...[
+                DropdownButtonFormField<int?>(
+                  initialValue: _subjectId,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Who is this leave for?',
+                    helperText: 'Leave as Myself unless you are applying for your staff',
+                  ),
+                  items: [
+                    const DropdownMenuItem<int?>(value: null, child: Text('Myself')),
+                    ..._canApplyFor.map((p) => DropdownMenuItem<int?>(
+                          value: p['id'] as int,
+                          child: Text(
+                            '${p['name']} (${p['emp_number']})',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        )),
+                  ],
+                  onChanged: (v) => setState(() => _subjectId = v),
+                ),
+                const SizedBox(height: 16),
+              ],
               DropdownButtonFormField<int>(
                 initialValue: _selectedTypeId,
                 decoration: const InputDecoration(labelText: 'Leave Type'),
@@ -467,6 +525,31 @@ class _ApplyLeaveDialogState extends ConsumerState<_ApplyLeaveDialog> {
                 ],
               ),
               const SizedBox(height: 16),
+              // Hidden when the server could name nobody — an empty chooser
+              // on a screen is worse than no chooser at all.
+              if (_canCover.isNotEmpty) ...[
+                DropdownButtonFormField<int>(
+                  initialValue: _coverId,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Who will cover',
+                    helperText: 'The colleague holding things while you are away',
+                  ),
+                  items: [
+                    const DropdownMenuItem<int>(value: null, child: Text('Not decided yet')),
+                    for (final person in _canCover)
+                      DropdownMenuItem<int>(
+                        value: person['id'] as int,
+                        child: Text(
+                          '${person['name']} (${person['emp_number']})',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                  onChanged: (v) => setState(() => _coverId = v),
+                ),
+                const SizedBox(height: 16),
+              ],
               TextFormField(
                 controller: _reasonCtrl,
                 maxLines: 3,
@@ -498,11 +581,22 @@ class _ApplyLeaveDialogState extends ConsumerState<_ApplyLeaveDialog> {
       'from_date': '${_fromDate!.year}-${_fromDate!.month.toString().padLeft(2, '0')}-${_fromDate!.day.toString().padLeft(2, '0')}',
       'to_date': '${_toDate!.year}-${_toDate!.month.toString().padLeft(2, '0')}-${_toDate!.day.toString().padLeft(2, '0')}',
       'reason': _reasonCtrl.text,
+      // Omitted entirely when it is your own leave, so the server reads the
+      // signed-in person exactly as it always has.
+      if (_subjectId != null) 'employee_id': _subjectId,
+      // The server checks this against who the applicant may actually name,
+      // so sending it is a request rather than a grant.
+      if (_coverId != null) 'replacement_employee_id': _coverId,
     });
     if (!mounted) return;
     if (ok) {
+      final who = _subjectId == null
+          ? 'Leave request submitted'
+          : 'Leave request submitted for '
+              '${_canApplyFor.firstWhere((p) => p['id'] == _subjectId)['name']}';
+
       // Show snackbar before popping so context is still valid
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Leave request submitted'), backgroundColor: AppColors.success));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(who), backgroundColor: AppColors.success));
       ref.invalidate(leaveListProvider);
       ref.invalidate(leaveBalanceProvider);
     } else {

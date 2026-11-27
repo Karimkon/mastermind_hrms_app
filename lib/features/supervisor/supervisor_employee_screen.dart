@@ -47,6 +47,9 @@ class SupervisorEmployeeScreen extends ConsumerWidget {
             children: [
               _Header(employee: detail.employee),
               const SizedBox(height: AppSpace.xl),
+              const SectionLabel('Still working?'),
+              _StoppedWorkingCard(employee: detail.employee),
+              const SizedBox(height: AppSpace.xl),
               const SectionLabel('Details'),
               _ProposeForm(employeeId: employeeId, contract: detail.editable),
               const SizedBox(height: AppSpace.xl),
@@ -57,6 +60,162 @@ class SupervisorEmployeeScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Recording that somebody has stopped working.
+///
+/// The one thing on this screen that is NOT a proposal. A man who left on
+/// Monday is ticked present on Tuesday out of habit and paid on Friday, and
+/// the people who could stop it are miles away and have not been told. So
+/// this writes immediately, takes them off the register and the payroll, and
+/// notifies the account manager, who can put it back.
+class _StoppedWorkingCard extends ConsumerStatefulWidget {
+  final SupervisorEmployeeModel employee;
+  const _StoppedWorkingCard({required this.employee});
+
+  @override
+  ConsumerState<_StoppedWorkingCard> createState() => _StoppedWorkingCardState();
+}
+
+class _StoppedWorkingCardState extends ConsumerState<_StoppedWorkingCard> {
+  bool _sending = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = widget.employee.statusLabel;
+
+    if (label != null) {
+      return AppCard(
+        child: Row(
+          children: [
+            const Icon(Icons.person_off_rounded, size: 18, color: AppColors.textMuted),
+            const SizedBox(width: AppSpace.sm),
+            Expanded(
+              child: Text(
+                '$label — off the register and off the payroll. '
+                'Ask your account manager to put them back.',
+                style: const TextStyle(fontSize: 12.5, height: 1.4, color: AppColors.textSecondary),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'If this person has left, been stood down or is on hold, record it here. '
+            'It stops their attendance and their pay today and tells your account manager.',
+            style: TextStyle(fontSize: 12.5, height: 1.45, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: AppSpace.md),
+          OutlinedButton.icon(
+            onPressed: _sending ? null : _record,
+            icon: const Icon(Icons.person_off_rounded, size: 17),
+            label: Text(_sending ? 'Recording…' : 'They have stopped working'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _record() async {
+    final choices = await SupervisorActions.statusChoices();
+    if (!mounted) return;
+
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (ctx) => _StoppedWorkingDialog(choices: choices, name: widget.employee.name),
+    );
+
+    if (result == null || !mounted) return;
+
+    setState(() => _sending = true);
+
+    final message = await SupervisorActions.recordStatus(
+      widget.employee.id,
+      state: result['state']!,
+      reason: result['reason']!,
+    );
+
+    if (!mounted) return;
+    setState(() => _sending = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(message ?? 'Recorded.'),
+      backgroundColor: message == null ? AppColors.error : AppColors.success,
+    ));
+
+    ref.invalidate(supervisorEmployeeProvider(widget.employee.id));
+    ref.invalidate(supervisorWorkforceProvider(''));
+  }
+}
+
+class _StoppedWorkingDialog extends StatefulWidget {
+  final List<Map<String, dynamic>> choices;
+  final String name;
+  const _StoppedWorkingDialog({required this.choices, required this.name});
+
+  @override
+  State<_StoppedWorkingDialog> createState() => _StoppedWorkingDialogState();
+}
+
+class _StoppedWorkingDialogState extends State<_StoppedWorkingDialog> {
+  String? _state;
+  final _reasonCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _reasonCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ...widget.choices.map((c) => RadioListTile<String>(
+                  value: c['value'] as String,
+                  groupValue: _state,
+                  onChanged: (v) => setState(() => _state = v),
+                  title: Text(c['label'] as String, style: const TextStyle(fontSize: 14)),
+                  subtitle: Text(c['hint'] as String, style: const TextStyle(fontSize: 11.5)),
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                )),
+            const SizedBox(height: AppSpace.sm),
+            TextField(
+              controller: _reasonCtrl,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                labelText: 'What happened?',
+                hintText: 'e.g. Absconded — last on site 12 Nov, phone off since.',
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        FilledButton(
+          // Both are required by the server too; checking here saves a round
+          // trip and says which one is missing.
+          onPressed: _state == null || _reasonCtrl.text.trim().length < 5
+              ? null
+              : () => Navigator.pop(context, {'state': _state!, 'reason': _reasonCtrl.text.trim()}),
+          child: const Text('Record it'),
+        ),
+      ],
     );
   }
 }

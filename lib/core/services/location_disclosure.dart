@@ -123,6 +123,19 @@ class LocationDisclosure {
   static const siteVisit =
       'Mastermind HRMS records where you are when you start and end a site visit, '
       'so the visit can be confirmed against the client you are visiting.';
+
+  /// Drivers logging where they have been.
+  ///
+  /// Worded to be exact about what is and is not collected, because it is not
+  /// what people assume when they hear a vehicle is "tracked": the app reads
+  /// your position at the moment you press Arrived and at no other time. It
+  /// does not follow the vehicle, and it records nothing while the app is
+  /// closed — which is also why this needs no background-location permission.
+  static const driverStop =
+      'Mastermind HRMS records where you are at the moment you log a stop, so '
+      'the office knows where the vehicle has been. Your location is read only '
+      'when you press Arrived — never in the background, and never while the '
+      'app is closed.';
 }
 
 class _Point extends StatelessWidget {

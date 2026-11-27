@@ -51,7 +51,10 @@ class AttendanceTodayNotifier extends AsyncNotifier<AttendanceTodayState> {
     final position = await _getPosition();
     try {
       await ApiService.post(ApiConstants.clockIn, data: position != null
-          ? {'latitude': position.latitude, 'longitude': position.longitude}
+          ? {'latitude': position.latitude, 'longitude': position.longitude,
+             // How wide the fix is, in metres. The server needs it to tell a
+             // GPS fix from a network guess before it refuses somebody a day.
+             'accuracy': position.accuracy}
           : {});
     } on DioException catch (e) {
       final data = e.response?.data;
@@ -72,7 +75,10 @@ class AttendanceTodayNotifier extends AsyncNotifier<AttendanceTodayState> {
     final position = await _getPosition();
     try {
       await ApiService.post(ApiConstants.clockOut, data: position != null
-          ? {'latitude': position.latitude, 'longitude': position.longitude}
+          ? {'latitude': position.latitude, 'longitude': position.longitude,
+             // How wide the fix is, in metres. The server needs it to tell a
+             // GPS fix from a network guess before it refuses somebody a day.
+             'accuracy': position.accuracy}
           : {});
     } on DioException catch (e) {
       final data = e.response?.data;

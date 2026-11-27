@@ -92,6 +92,16 @@ class SupervisorEmployeeModel {
   final String? department;
   final String? client;
   final String status;
+
+  /// Whether this person is still on the register. The server decides it -
+  /// status, the blacklist flag and an unexpired hold all count - so the app
+  /// never has to work the rule out a second time and get it slightly wrong.
+  final bool working;
+
+  /// Why they are not, ready to show: "Left / terminated", "On hold until
+  /// 03 Dec". Null while they are working.
+  final String? statusLabel;
+
   final SupervisorTodayModel? today;
 
   /// Present only on the detail call, which is why they are all nullable:
@@ -109,6 +119,8 @@ class SupervisorEmployeeModel {
     this.department,
     this.client,
     this.status = 'active',
+    this.working = true,
+    this.statusLabel,
     this.today,
     this.phone,
     this.personalEmail,
@@ -124,6 +136,10 @@ class SupervisorEmployeeModel {
         department: j['department']?.toString(),
         client: j['client']?.toString(),
         status: (j['status'] ?? 'active').toString(),
+        // Older builds of the server do not send these; treating a missing
+        // answer as "working" keeps the list behaving as it always did.
+        working: j['working'] == null ? true : j['working'] == true,
+        statusLabel: j['status_label']?.toString(),
         today: j['today'] == null
             ? null
             : SupervisorTodayModel.fromJson(Map<String, dynamic>.from(j['today'] as Map)),
@@ -282,4 +298,109 @@ class SupervisorEmployeeDetail {
             .map((r) => Map<String, dynamic>.from(r as Map))
             .toList(),
       );
+}
+
+/// One payroll run as the site sees it.
+///
+/// `people` is this site's headcount on the run, not the run's — a run can
+/// span several clients and a supervisor has no business reading another
+/// site's wage bill. The server counts it that way; nothing here filters.
+class SitePayrollRun {
+  final int id;
+  final String title;
+  final String? clientName;
+  final String status;
+  final String statusLabel;
+  final bool released;
+  final int people;
+
+  const SitePayrollRun({
+    required this.id,
+    required this.title,
+    this.clientName,
+    required this.status,
+    required this.statusLabel,
+    required this.released,
+    required this.people,
+  });
+
+  factory SitePayrollRun.fromJson(Map<String, dynamic> j) => SitePayrollRun(
+        id: j['id'] as int,
+        title: (j['title'] ?? 'Payroll run').toString(),
+        clientName: j['client_name'] as String?,
+        status: (j['status'] ?? '').toString(),
+        statusLabel: (j['status_label'] ?? '').toString(),
+        released: j['released'] == true,
+        people: (j['people'] as num?)?.toInt() ?? 0,
+      );
+}
+
+/// One person's pay on one run.
+class SitePayslip {
+  final int employeeId;
+  final String empNumber;
+  final String name;
+  final String? role;
+  final double workedDays;
+  final double absentDays;
+  final double gross;
+  final double deductions;
+  final double net;
+
+  const SitePayslip({
+    required this.employeeId,
+    required this.empNumber,
+    required this.name,
+    this.role,
+    required this.workedDays,
+    required this.absentDays,
+    required this.gross,
+    required this.deductions,
+    required this.net,
+  });
+
+  static double _num(Object? v) => (v as num?)?.toDouble() ?? 0;
+
+  factory SitePayslip.fromJson(Map<String, dynamic> j) => SitePayslip(
+        employeeId: (j['employee_id'] as num?)?.toInt() ?? 0,
+        empNumber: (j['emp_number'] ?? '').toString(),
+        name: (j['name'] ?? '').toString(),
+        role: j['role'] as String?,
+        workedDays: _num(j['worked_days']),
+        absentDays: _num(j['absent_days']),
+        gross: _num(j['gross']),
+        deductions: _num(j['deductions']),
+        net: _num(j['net']),
+      );
+}
+
+/// A run with its payslips and the site's totals.
+class SitePayrollDetail {
+  final SitePayrollRun run;
+  final List<SitePayslip> payslips;
+  final double gross;
+  final double net;
+  final double days;
+
+  const SitePayrollDetail({
+    required this.run,
+    required this.payslips,
+    required this.gross,
+    required this.net,
+    required this.days,
+  });
+
+  factory SitePayrollDetail.fromJson(Map<String, dynamic> j) {
+    final totals = Map<String, dynamic>.from(j['totals'] as Map? ?? const {});
+
+    return SitePayrollDetail(
+      run: SitePayrollRun.fromJson(Map<String, dynamic>.from(j['run'] as Map? ?? const {})),
+      payslips: ((j['data'] as List?) ?? const [])
+          .map((p) => SitePayslip.fromJson(Map<String, dynamic>.from(p as Map)))
+          .toList(),
+      gross: SitePayslip._num(totals['gross']),
+      net: SitePayslip._num(totals['net']),
+      days: SitePayslip._num(totals['days']),
+    );
+  }
 }

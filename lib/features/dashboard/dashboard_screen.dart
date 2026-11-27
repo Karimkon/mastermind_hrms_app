@@ -7,7 +7,7 @@ import '../../core/providers/auth_provider.dart';
 import '../../core/providers/dashboard_provider.dart';
 import '../../core/providers/attendance_provider.dart';
 import '../../core/models/attendance_model.dart';
-import '../../core/services/location_disclosure.dart';
+import '../attendance/punch.dart';
 import '../../core/navigation/app_nav.dart';
 import '../../core/widgets/ui.dart';
 import 'office_clock_button.dart';
@@ -285,18 +285,9 @@ class _ClockButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.md),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: () async {
-            if (!await LocationDisclosure.ensure(context,
-                purpose: LocationDisclosure.clockIn)) {
-              return;
-            }
-
-            if (isClockedIn) {
-              await ref.read(attendanceTodayProvider.notifier).clockOut();
-            } else {
-              await ref.read(attendanceTodayProvider.notifier).clockIn();
-            }
-          },
+          // Was: await clockIn() with no catch, so a refusal vanished and the
+          // button simply stopped spinning. punchAttendance always speaks.
+          onTap: () => punchAttendance(context, ref, clockingIn: !isClockedIn),
           child: Container(
             padding: const EdgeInsets.symmetric(
                 horizontal: AppSpace.lg, vertical: AppSpace.md + 1),

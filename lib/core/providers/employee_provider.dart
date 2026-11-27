@@ -86,15 +86,40 @@ class EmployeeActionsNotifier extends Notifier<AsyncValue<void>> {
     }
   }
 
-  Future<bool> updateEmployee(int id, Map<String, dynamic> data) async {
+  /// Save an employee edit, and say what the server made of it.
+  ///
+  /// This returned a bare true/false and the screen then said "Employee
+  /// updated" on its own authority. For an account manager that sentence is
+  /// wrong: their edit is a proposal that HR has to approve, and nothing on
+  /// the record has moved. The server already writes the right sentence —
+  /// "Sent to HR for approval", "Nothing was changed", or that it saved — so
+  /// it is carried back rather than invented here. On a refusal the message
+  /// is the server's too, which for a 422 is the field that was rejected.
+  Future<({bool ok, String message})> updateEmployee(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
     state = const AsyncLoading();
     try {
-      await ApiService.put('${ApiConstants.employees}/$id', data: data);
+      final resp = await ApiService.put('${ApiConstants.employees}/$id', data: data);
       state = const AsyncData(null);
-      return true;
+
+      final body = resp.data;
+      final said = body is Map ? body['message'] : null;
+
+      return (
+        ok: true,
+        message: said is String && said.trim().isNotEmpty
+            ? said.trim()
+            : 'Saved.',
+      );
     } catch (e) {
       state = AsyncError(e, StackTrace.current);
-      return false;
+
+      return (
+        ok: false,
+        message: e is ApiException ? e.message : 'That could not be saved.',
+      );
     }
   }
 }

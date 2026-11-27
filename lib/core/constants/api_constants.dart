@@ -24,6 +24,15 @@ class ApiConstants {
   static const String supervisorDashboard  = '/supervisor/dashboard';
   static const String supervisorWorkforce  = '/supervisor/workforce';
   static const String supervisorMyRequests = '/supervisor/my-requests';
+  // Site Payroll: read-only, and behind supervision.payroll on the server.
+  static const String supervisorPayroll    = '/supervisor/payroll';
+
+  // Driver journeys. A stop is recorded where the driver stands, when
+  // they say so - never in the background.
+  static const String driverToday = '/driver/today';
+  static const String driverStops = '/driver/stops';
+  static String driverDepart(int id) => '/driver/stops/$id/depart';
+  static String supervisorPayslips(int runId) => '/supervisor/payroll/$runId/payslips';
 
   // Employees
   static const String employees = '/employees';
@@ -42,6 +51,11 @@ class ApiConstants {
   static const String leaves = '/leaves';
   static const String leaveTypes = '/leave-types';
   static const String leaveBalance = '/leave-balance';
+  /// Who the signed-in person may apply for, besides themselves.
+  // Who may be named as cover: a WIDER list than the filing one, because
+  // cover is a colleague who can do the job rather than a subordinate.
+  static const String leaveCoverOptions  = '/leave-cover-options';
+  static const String leaveFilingOptions = '/leave-filing-options';
 
   // Payroll
   static const String payroll = '/payroll';

@@ -67,6 +67,8 @@ import '../../features/supervisor/supervisor_dashboard_screen.dart';
 import '../../features/supervisor/supervisor_workforce_screen.dart';
 import '../../features/supervisor/supervisor_employee_screen.dart';
 import '../../features/supervisor/supervisor_requests_screen.dart';
+import '../../features/supervisor/supervisor_payroll_screen.dart';
+import '../../features/driver/driver_screen.dart';
 
 // A ChangeNotifier that fires whenever auth state changes.
 // GoRouter uses this via refreshListenable to re-evaluate redirects.
@@ -209,6 +211,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/supervisor',           builder: (_, _) => const SupervisorDashboardScreen()),
           GoRoute(path: '/supervisor/workforce', builder: (_, _) => const SupervisorWorkforceScreen()),
           GoRoute(path: '/supervisor/requests',  builder: (_, _) => const SupervisorRequestsScreen()),
+          GoRoute(path: '/supervisor/payroll',   builder: (_, _) => const SupervisorPayrollScreen()),
+          GoRoute(path: '/driver',              builder: (_, _) => const DriverScreen()),
           GoRoute(
             path: '/supervisor/workforce/:id',
             builder: (_, state) => SupervisorEmployeeScreen(

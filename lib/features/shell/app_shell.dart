@@ -115,9 +115,17 @@ class _AppShellState extends ConsumerState<AppShell> with WidgetsBindingObserver
     items.add(_NavItem(icon: Icons.fingerprint_rounded, label: 'Attendance', path: '/attendance'));
     // Office presence register. Offered to office-based staff — client-site
     // employees clock in through Attendance above, which is the payroll one.
-    if (user.isAccountManager || user.isAdmin || user.isManager || user.isPayroll) {
+    if (user.mayOpen(
+      roles: const ['account-manager', 'super-admin', 'hr-admin', 'manager', 'payroll-officer'],
+      perms: const ['attendance.view', 'attendance.manage'],
+    )) {
       items.add(_NavItem(
         icon: Icons.business_rounded, label: 'Office Attendance', path: '/office-attendance'));
+    }
+    // A driver logs where the vehicle has been. Gated on the permission
+    // rather than the role name, like everything else.
+    if (user.can('drivers.log')) {
+      items.add(_NavItem(icon: Icons.route_rounded, label: 'My Journey', path: '/driver'));
     }
     items.add(_NavItem(icon: Icons.beach_access_rounded, label: 'My Leave', path: '/leaves', area: 'leave'));
     items.add(_NavItem(icon: Icons.receipt_long_rounded, label: 'My Payslips', path: '/my-payslips', area: 'payslips'));
@@ -139,6 +147,11 @@ class _AppShellState extends ConsumerState<AppShell> with WidgetsBindingObserver
       items.add(_NavItem(icon: Icons.insights_rounded, label: 'Site Today', path: '/supervisor'));
       items.add(_NavItem(icon: Icons.groups_rounded, label: 'My Workforce', path: '/supervisor/workforce'));
       items.add(_NavItem(icon: Icons.fact_check_rounded, label: 'My Change Requests', path: '/supervisor/requests'));
+      // Site Payroll. The web has had this screen since the module was
+      // built; the app had nothing, so a supervisor asked at the gate what
+      // somebody was paid had to go and find a laptop. The server refuses
+      // it without supervision.payroll, and the screen says so.
+      items.add(_NavItem(icon: Icons.receipt_long_rounded, label: 'Site Payroll', path: '/supervisor/payroll'));
     }
 
     if (user.isAccountManager) {
@@ -149,58 +162,131 @@ class _AppShellState extends ConsumerState<AppShell> with WidgetsBindingObserver
       items.add(_NavItem(icon: Icons.payments_rounded, label: 'Payroll Runs', path: '/am-payroll'));
       items.add(_NavItem(icon: Icons.money_rounded, label: 'Salary Payments', path: '/am-salary-payments'));
       items.add(_NavItem(icon: Icons.assignment_rounded, label: 'Team Appraisals', path: '/appraisals', area: 'appraisals'));
+      // Where a supervisor's proposed edits are decided. The browser has let
+      // account managers into this queue since it was built; the phone did
+      // not have the entry and the endpoint refused them, so a supervisor
+      // could send 263 changes and the person meant to decide them saw
+      // nothing on the app. Both ends are now the same.
+      items.add(_NavItem(
+        icon: Icons.fact_check_rounded,
+        label: 'Change Approvals',
+        path: '/change-approvals',
+        area: 'change_approvals',
+      ));
     }
 
-    if (user.isAdmin || user.isManager) {
-      items.add(_NavSectionHeader('MANAGEMENT'));
-      items.add(_NavItem(icon: Icons.people_rounded, label: 'Employees', path: '/employees'));
-      // HR's queue of edits account managers have proposed. The endpoint
-      // is super-admin/hr-admin only, so a manager would only get a 403.
-      if (user.isAdmin) {
-        items.add(_NavItem(
+    /*
+     | From here down, every entry asks mayOpen() rather than a role name.
+     |
+     | These were five blocks keyed on isAdmin / isManager / isPayroll, which
+     | is why a permission granted to somebody changed nothing they could see
+     | on the phone — the same bug the web sidebar had. The role lists below
+     | are exactly what each block tested before, so nobody loses an entry;
+     | the permissions beside them are what is new.
+     |
+     | Kept in step with App\Support\Nav::ACCESS on the server, which gates
+     | the matching routes. A menu entry that 403s is worse than none.
+     */
+    const admin = ['super-admin', 'hr-admin'];
+
+    final management = <_NavItem>[
+      if (user.mayOpen(roles: const [...admin, 'manager'],
+                       perms: const ['employees.view'],
+                       deny: const ['account-manager']))
+        _NavItem(icon: Icons.people_rounded, label: 'Employees', path: '/employees'),
+
+      // The queue of proposed edits. Account managers reach it from their own
+      // section above, so they are not offered a second copy here.
+      if (user.mayOpen(roles: admin, perms: const ['employees.edit'],
+                       deny: const ['account-manager']))
+        _NavItem(
           icon: Icons.fact_check_rounded,
           label: 'Change Approvals',
           path: '/change-approvals',
           area: 'change_approvals',
-        ));
-      }
-      items.add(_NavItem(icon: Icons.bar_chart_rounded, label: 'Performance', path: '/performance'));
-      items.add(_NavItem(icon: Icons.assignment_rounded, label: 'Appraisals', path: '/appraisals', area: 'appraisals'));
-      items.add(_NavItem(icon: Icons.event_available_rounded, label: 'Holiday Pay', path: '/holiday-pay'));
-      items.add(_NavItem(icon: Icons.schedule_rounded, label: 'Shifts', path: '/shifts'));
-      items.add(_NavItem(icon: Icons.tune_rounded, label: 'Salary Structure', path: '/salary-structure'));
-      items.add(_NavItem(icon: Icons.event_note_rounded, label: 'Public Holidays', path: '/public-holidays'));
+        ),
+
+      if (user.mayOpen(roles: const [...admin, 'manager'],
+                       // performance.manage only: .view and .review are on the
+                       // employee role for their own scorecard, under MY WORK.
+                       perms: const ['performance.manage']))
+        _NavItem(icon: Icons.bar_chart_rounded, label: 'Performance', path: '/performance'),
+
+      if (user.mayOpen(roles: const [...admin, 'manager'],
+                       // performance.manage only: .view and .review are on the
+                       // employee role for their own scorecard, under MY WORK.
+                       perms: const ['performance.manage']))
+        _NavItem(icon: Icons.assignment_rounded, label: 'Appraisals', path: '/appraisals', area: 'appraisals'),
+
+      if (user.mayOpen(roles: const [...admin, 'manager'], perms: const ['payroll.manage']))
+        _NavItem(icon: Icons.event_available_rounded, label: 'Holiday Pay', path: '/holiday-pay'),
+
+      if (user.mayOpen(roles: const [...admin, 'manager'], perms: const ['attendance.manage']))
+        _NavItem(icon: Icons.schedule_rounded, label: 'Shifts', path: '/shifts'),
+
+      if (user.mayOpen(roles: const [...admin, 'manager'], perms: const ['payroll.manage']))
+        _NavItem(icon: Icons.tune_rounded, label: 'Salary Structure', path: '/salary-structure'),
+
+      if (user.mayOpen(roles: const [...admin, 'manager'], perms: const ['admin.settings']))
+        _NavItem(icon: Icons.event_note_rounded, label: 'Public Holidays', path: '/public-holidays'),
+
       // Payroll pays only approved overtime, so this screen gates real money.
-      items.add(_NavItem(
-        icon: Icons.hourglass_bottom_rounded, label: 'Overtime Approval', path: '/overtime'));
-      if (user.canSeeProbation) {
-        items.add(_NavItem(icon: Icons.person_search_rounded, label: 'Probation', path: '/probation', area: 'probation'));
-      }
+      if (user.mayOpen(roles: const [...admin, 'manager'], perms: const ['attendance.manage']))
+        _NavItem(icon: Icons.hourglass_bottom_rounded, label: 'Overtime Approval', path: '/overtime'),
+
+      if (user.mayOpen(roles: admin, perms: const ['employees.edit'],
+                       deny: const ['account-manager']))
+        _NavItem(icon: Icons.person_search_rounded, label: 'Probation', path: '/probation', area: 'probation'),
+    ];
+
+    if (management.isNotEmpty) {
+      items.add(_NavSectionHeader('MANAGEMENT'));
+      items.addAll(management);
     }
 
-    if (user.isAdmin || user.isPayroll) {
+    if (user.mayOpen(
+      roles: const [...admin, 'payroll-officer'],
+      // NOT payroll.view: the employee role holds it for My Payslips,
+      // and this entry opens every client's payroll run.
+      perms: const ['payroll.manage', 'payroll.approve', 'payroll.process'],
+      deny: const ['account-manager'],
+    )) {
       items.add(_NavSectionHeader('PAYROLL'));
       items.add(_NavItem(icon: Icons.payments_rounded, label: 'Payroll Runs', path: '/payroll', area: 'payroll'));
     }
 
-    if (user.isAdmin || user.isRecruiter) {
+    if (user.mayOpen(
+      roles: const [...admin, 'recruiter'],
+      perms: const ['recruitment.view', 'recruitment.manage', 'recruitment.interview'],
+    )) {
       items.add(_NavSectionHeader('RECRUITMENT'));
       items.add(_NavItem(icon: Icons.work_rounded, label: 'Jobs', path: '/recruitment/jobs'));
       items.add(_NavItem(icon: Icons.person_search_rounded, label: 'Candidates', path: '/recruitment/candidates'));
       items.add(_NavItem(icon: Icons.record_voice_over_rounded, label: 'Interviews', path: '/recruitment/interviews'));
     }
 
-    if (user.isAdmin || user.isManager || user.isPayroll) {
+    if (user.mayOpen(
+      roles: const [...admin, 'manager', 'payroll-officer'],
+      perms: const ['reports.view', 'reports.export'],
+    )) {
       items.add(_NavSectionHeader('ANALYTICS'));
       items.add(_NavItem(icon: Icons.insert_chart_rounded, label: 'Reports', path: '/reports'));
     }
 
-    if (user.isAdmin) {
+    final administration = <_NavItem>[
+      if (user.mayOpen(roles: admin, perms: const ['admin.users']))
+        _NavItem(icon: Icons.manage_accounts_rounded, label: 'Users', path: '/admin/users'),
+      if (user.mayOpen(roles: admin, perms: const ['admin.settings']))
+        _NavItem(icon: Icons.corporate_fare_rounded, label: 'Departments', path: '/admin/departments'),
+      if (user.mayOpen(roles: admin, perms: const ['admin.settings']))
+        _NavItem(icon: Icons.business_center_rounded, label: 'Clients', path: '/admin/clients'),
+      if (user.mayOpen(roles: admin, perms: const ['admin.audit']))
+        _NavItem(icon: Icons.history_rounded, label: 'Audit Logs', path: '/admin/audit'),
+    ];
+
+    if (administration.isNotEmpty) {
       items.add(_NavSectionHeader('ADMIN'));
-      items.add(_NavItem(icon: Icons.manage_accounts_rounded, label: 'Users', path: '/admin/users'));
-      items.add(_NavItem(icon: Icons.corporate_fare_rounded, label: 'Departments', path: '/admin/departments'));
-      items.add(_NavItem(icon: Icons.business_center_rounded, label: 'Clients', path: '/admin/clients'));
-      items.add(_NavItem(icon: Icons.history_rounded, label: 'Audit Logs', path: '/admin/audit'));
+      items.addAll(administration);
     }
 
     return items;

@@ -39,6 +39,31 @@ class UserModel {
   bool hasRole(String role) => roles.contains(role);
   bool hasAnyRole(List<String> r) => r.any(roles.contains);
 
+  bool can(String permission) => permissions.contains(permission);
+  bool canAny(List<String> p) => p.any(permissions.contains);
+
+  /// May this person reach a module — by role, or by a permission that says
+  /// the same thing?
+  ///
+  /// The same rule as App\Support\Nav on the server, and for the same reason.
+  /// The menu was gated on role names alone, so somebody granted a permission
+  /// saw no change: the screen they had just been given was behind a block
+  /// their role did not open. `permissions` has always been in the sign-in
+  /// response and nothing read it.
+  ///
+  /// [deny] is for a role that holds the permission for its OWN scoped screen
+  /// and must not be given the company-wide one — an account manager holds
+  /// employees.view for their client list, which is not Employee Central.
+  bool mayOpen({
+    List<String> roles = const [],
+    List<String> perms = const [],
+    List<String> deny = const [],
+  }) {
+    if (deny.isNotEmpty && hasAnyRole(deny)) return false;
+
+    return hasAnyRole(roles) || (perms.isNotEmpty && canAny(perms));
+  }
+
   bool get isAdmin          => hasAnyRole(['super-admin', 'hr-admin']);
   bool get isManager        => hasRole('manager');
   bool get isEmployee       => hasRole('employee');
